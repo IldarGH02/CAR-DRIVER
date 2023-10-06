@@ -1,0 +1,33 @@
+.header {
+    @media (max-width: 1240px) {
+        display: none;
+    }
+    border-bottom: 1px solid #CACACA;
+
+    .header__content {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        padding: 15px 0;
+
+        .header__nav {
+            display: flex;
+            gap: 15px;
+
+            .header__link {
+                text-decoration: none;
+                @include textStyle(400, 20px, 23px, $colorBlack); 
+
+                &:hover {
+                    transition: color 0.3s ease-in-out;
+                    color: $hoverRedColor;
+                }                                         
+            }
+
+            .active {
+                color: $hoverRedColor;
+            }
+        }
+    }
+}

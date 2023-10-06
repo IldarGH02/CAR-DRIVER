@@ -1,0 +1,25 @@
+.home {
+    @media (min-width: 1240px) {
+        padding-top: 50px;
+    }
+
+    .home__content {
+        .home__description {
+            .home__text {
+                span {
+                    @include textStyle(600, 35px, 40px, $colorBlack);
+
+                    @media (max-width: 1240px) {
+                        @include textStyle(600, 20px, 25px, $colorBlack);
+                    }
+                }
+
+                @include textStyle(400, 15px, 17px, $colorBlack);
+
+                @media (min-width: 1240px) {
+                    @include textStyle(400, 25px, 30px, $colorBlack);
+                }
+            }
+        }
+    }
+}

@@ -6,10 +6,10 @@ import FormButton from "../../shared/ui/FormButton"
 import { FormInput } from "../../shared/ui/FormInput"
 import { useAppDispatch } from "../../features/hooks"
 import { prepareValue } from "../../features/func/fuel-func"
-// import { deprecationPriceResult, fuelPriceResult, fuelVolumeResult } from "../../app/store/slices/calculatorSlice"
-
-import { fuelPriceResult} from "../../app/store/slices/calculatorSlice"
+import { calculation } from "../../app/store/slices/calculationSlice"
 import { validation } from "../../features/func/validation"
+
+import { nanoid } from "nanoid"
 
 const FuelForm = () => {
     const [distace, setDistace] = useState<string>('')
@@ -17,10 +17,9 @@ const FuelForm = () => {
     const [consuption, setConsuption] = useState<string>('')
     const [deprecation, setDeprecation] = useState<string>('')
 
-    const fuelPriceDispatch = useAppDispatch()
-    const fuelVolumeDispatch = useAppDispatch()
-    const deprecationPriceDisptach = useAppDispatch()
+    const newID = nanoid()
 
+    const calculationDispatch = useAppDispatch()
 
     const getDistanceValue = (e: React.ChangeEvent<HTMLInputElement>) => {
         const input = e.target
@@ -62,22 +61,33 @@ const FuelForm = () => {
         distance: string, 
         consuption: string, 
         price: string, 
-        depreciation: string) => 
+        deprecation: string) => 
         
         {
             let _distance = prepareValue(distance)
             let _consumption = prepareValue(consuption)
             let _price = prepareValue(price)
-            let _depreciationPrice = prepareValue(depreciation)
+            let _deprecationPrice = prepareValue(deprecation)
 
-            const Calculation = {
-                fuelPrice: Number(Math.floor((_distance * (_consumption / 100)) * _price).toFixed(2)),
-                depreciationPrice: Number(Math.floor(_distance * _depreciationPrice).toFixed(2)),
-                fuelVolume: Number(Math.floor(_distance * (_consumption / 100)).toFixed(2))
-            }
+            // const Calculation = {
+            //     fuelPrice: Number(Math.floor((_distance * (_consumption / 100)) * _price).toFixed(2)),
+            //     depreciationPrice: Number(Math.floor(_distance * _depreciationPrice).toFixed(2)),
+            //     fuelVolume: Number(Math.floor(_distance * (_consumption / 100)).toFixed(2)),
+            //     id: newID
+            // }
 
-            if(!isNaN(Calculation.fuelPrice) && !isNaN(Calculation.depreciationPrice)) {
-                fuelPriceDispatch(fuelPriceResult(Calculation))
+            const fuelPrice = Number(Math.floor((_distance * (_consumption / 100)) * _price).toFixed(2))
+            const deprecationPrice = Number(Math.floor(_distance * _deprecationPrice).toFixed(2))
+            const fuelVolume = Number(Math.floor(_distance * (_consumption / 100)).toFixed(2))
+
+            if(!isNaN(fuelPrice) && !isNaN(deprecationPrice)) {
+                calculationDispatch(calculation({
+                    fuelPrice: fuelPrice,
+                    deprecationPrice: deprecationPrice,
+                    fuelVolume: fuelVolume,
+                    id: newID,
+                    time: new Date().toLocaleString()
+                }))
             }
             
     }

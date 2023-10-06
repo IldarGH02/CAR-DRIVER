@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react"
 import { Form } from "react-bootstrap"
 import { FormControlProps } from "react-bootstrap"
 
@@ -11,20 +10,12 @@ interface IPropsInput {
 }
 
 export const FormInput: React.FC<IPropsInput & FormControlProps> = ({className, placeholder, type, value, handleInput}) => {
-    const [newValue, setNewValue] = useState<string | number>('')
-
-    useEffect(() => {
-        if(value) {
-            setNewValue(value)
-        }
-    }, [value])
-
     return (
         <Form.Control 
             className={className} 
             type={type} 
             placeholder={placeholder}
-            value={newValue}
+            value={value}
             onInput={handleInput}
         />
     )

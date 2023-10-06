@@ -11,10 +11,9 @@ export interface ICarTodos {
 }
 
 export interface ICalculation {
-    calculation: {
-        fuelPrice: number
-        deprecationPrice: number
-        fuelVolume: number
-        id: number
-    }
+    fuelPrice: number
+    deprecationPrice: number
+    fuelVolume: number
+    id: string  
+    time: string  
 }

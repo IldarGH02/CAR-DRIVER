@@ -3,12 +3,12 @@ import { FLUSH, PAUSE, PERSIST, PURGE, REGISTER, REHYDRATE, persistStore, persis
 
 import storage from "redux-persist/lib/storage";
 import carTodoSlice from "./slices/todosSlice"
-import calculatorSlice from "./slices/calculatorSlice";
+import calculationSlice from "./slices/calculationSlice";
 import { ROOT } from "../../features/constants";
 
 const rootReducer = combineReducers({
     todos: carTodoSlice,
-    results: calculatorSlice
+    results: calculationSlice
 })
 
 const persistConfig = {

@@ -2,9 +2,11 @@ import { NavLink } from "react-router-dom"
 
 import { routeMain as routeFuelCalculator } from "../../pages/Fuel-calculator"
 import { routeMain as routeHome } from "../../pages/Home"
+import { routeMain as routeNotes } from "../../pages/CarNote"
 
 import { IoIosCalculator } from "react-icons/io"
 import { AiOutlineHome } from "react-icons/ai"
+import { CgNotes } from 'react-icons/cg'
 
 const Navigation = () => {
     return (
@@ -21,6 +23,9 @@ const Navigation = () => {
                         </NavLink>
                         <NavLink to={routeFuelCalculator()} className="footer__link calc__link">
                             <IoIosCalculator/>
+                        </NavLink>
+                        <NavLink to={routeNotes()} className="footer__link notes__link">
+                            <CgNotes/>
                         </NavLink>
                     </div>
                 </div>

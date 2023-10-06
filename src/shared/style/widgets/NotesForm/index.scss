@@ -1,6 +1,8 @@
-.fuel__form {
+.form__notes {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    width: 560px;
+    max-width: 100%;
+    gap: 15px;
     margin-bottom: 35px;
 }

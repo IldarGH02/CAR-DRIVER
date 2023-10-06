@@ -4,6 +4,14 @@
     }
 
     .home__content {
+        .home__title {
+            margin-bottom: 40px;
+
+            @media (min-width: 1240px) {
+                display: none;
+            }
+        }
+
         .home__description {
             .home__text {
                 span {

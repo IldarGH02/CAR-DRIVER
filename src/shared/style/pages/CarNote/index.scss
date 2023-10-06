@@ -1,0 +1,28 @@
+.notePage {
+    @media (min-width: 1240px) {
+        padding-top: 50px;
+    }
+
+    display: flex;
+    margin: 0 auto;
+
+    .notePage__content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+
+       .notePage__title {
+            margin-bottom: 40px;
+
+            @media (min-width: 1240px) {
+                display: none;
+            }
+       }
+
+       .notePage__notes {
+            width: 100%;
+            display: flex;
+            flex-flow: row wrap;
+       }
+    }
+}

@@ -6,6 +6,10 @@ const Home = () => {
         <section className="home">
             <div className="container">
                 <div className="home__content">
+                    <Title
+                        className="home__title"
+                        titleName="CAR-DRIVER"
+                    />
                     <div className="home__description">
                         <p className="home__text">
                             <span>CAR-DRIVER</span> - полностью бесплатное приложение, разработанное 

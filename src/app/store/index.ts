@@ -2,12 +2,12 @@ import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import { FLUSH, PAUSE, PERSIST, PURGE, REGISTER, REHYDRATE, persistStore, persistReducer } from "redux-persist"
 
 import storage from "redux-persist/lib/storage";
-import carTodoSlice from "./slices/todosSlice"
+import notesSlice from "./slices/notesSlice"
 import calculationSlice from "./slices/calculationSlice";
 import { ROOT } from "../../features/constants";
 
 const rootReducer = combineReducers({
-    todos: carTodoSlice,
+    notes: notesSlice,
     results: calculationSlice
 })
 

@@ -1,13 +1,12 @@
-export interface ICarTodo {
+export interface ICarNote {
     title: string
     text: string
     date: string
     id: any
-    comleted: boolean
 }
 
-export interface ICarTodos {
-    todos: ICarTodo[]
+export interface ICarNotes {
+    notes: ICarNote[]
 }
 
 export interface ICalculation {

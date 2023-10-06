@@ -1,8 +1,19 @@
 .fuel {
+    display: flex;
+    margin: 0 auto;
     .fuel__content {
+        .fuel__title {
+            margin-bottom: 40px;
+        }
+
         .fuel__result-calculation {
             display: flex;
             flex-direction: column;
         }
+    }
+
+    @media (min-width: 1240px) {
+        padding-top: 50px;
+        max-width: 560px;
     }
 }

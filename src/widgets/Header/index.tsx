@@ -2,6 +2,7 @@ import { Title } from "../Title"
 import { NavLink } from "react-router-dom"
 
 import { routeMain as routeFuelCalculator } from "../../pages/Fuel-calculator"
+import { routeMain as routeCarTodo } from "../../pages/CarNote"
 import { routeMain as routeHome } from "../../pages/Home"
 
 const Header = () => {
@@ -19,6 +20,9 @@ const Header = () => {
                         </NavLink>
                         <NavLink to={routeFuelCalculator()} className="header__link calc__link">
                             Топливный калькулятор
+                        </NavLink>
+                        <NavLink to={routeCarTodo()} className="header__link calc__link">
+                            Заметки
                         </NavLink>
                     </div>
                 </div>

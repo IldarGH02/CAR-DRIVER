@@ -1,0 +1,18 @@
+.car__notes {
+    display: flex;
+    flex-flow: row wrap;
+    gap: 25px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    .car__note {
+        border-radius: 5px;
+        outline: 1px solid #CACACA;
+        
+        .car__note-content {
+            padding: 20px 25px;
+        }
+    }
+    
+}

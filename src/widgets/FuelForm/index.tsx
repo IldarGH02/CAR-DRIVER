@@ -87,11 +87,19 @@ const FuelForm = () => {
 
     const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault()
-        calculationFuelPrice(distace, consuption, price, deprecation)
-        setDistace('')
-        setPrice('')
-        setDeprecation('')
-        setConsuption('')
+        if(
+            distace.length > 0 && 
+            consuption.length > 0 && 
+            price.length > 0 && 
+            deprecation.length > 0) {
+                calculationFuelPrice(distace, consuption, price, deprecation)
+                setDistace('')
+                setPrice('')
+                setDeprecation('')
+                setConsuption('')
+            } else {
+                alert('Поля не заполнены')
+            }        
     }
 
     return (
@@ -124,7 +132,7 @@ const FuelForm = () => {
                 type="number"
                 handleInput={getDeprecationValue}
             />
-            <FormButton className="form__button" handleClick={handleClick}/>
+            <FormButton className="form__button" handleClick={handleClick} buttonName='Рассчитать'/>
         </Form>
     )
 }

@@ -1,0 +1,21 @@
+.fuel__results {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+
+    .fuel__result-calculation {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        border-bottom: 1px solid #9e9d9d;
+
+        .result__calculation {
+            span {
+                @include textStyle(400, 22px, 25px, $colorRed)
+            }
+            @include textStyle(400, 20px, 25px, $colorBlack)
+        }
+    }
+}

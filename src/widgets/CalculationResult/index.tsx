@@ -7,7 +7,7 @@ interface IResults {
 
 const CalculationResults: React.FC<IResults> = ({results}) => {
     return (
-        <ul>
+        <ul className="fuel__results">
             {results.length > 0 && results.map((result: ICalculation) => {
                 return <CalculationItem 
                     key={result.id}

@@ -7,10 +7,10 @@ interface ICalculationItem {
 const CalculationItem: React.FC<ICalculationItem> = ({calculation}) => {
     return (
         <li className="fuel__result-calculation">                        
-            <span className="result__calculation result__price">Заправить на: {calculation.fuelPrice} р.</span>
-            <span className="result__calculation result__consumprion">Амортизация: {calculation.deprecationPrice} р.</span>
-            <span className="result__calculation result__fuel-volume">Заправить {calculation.fuelVolume} л.</span>
-            <span>Дата и время расчёта: {calculation.time}</span>
+            <span className="result__calculation result__price">Заправить на: <span>{calculation.fuelPrice}</span> р.</span>
+            <span className="result__calculation result__consumprion">Амортизация: <span>{calculation.deprecationPrice}</span> р.</span>
+            <span className="result__calculation result__fuel-volume">Заправить <span>{calculation.fuelVolume}</span> л.</span>
+            <span className="result__calculation result__fuel-time">Дата и время расчёта: <span>{calculation.time}</span></span>
         </li>
     )
 }

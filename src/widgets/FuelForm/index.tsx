@@ -69,13 +69,6 @@ const FuelForm = () => {
             let _price = prepareValue(price)
             let _deprecationPrice = prepareValue(deprecation)
 
-            // const Calculation = {
-            //     fuelPrice: Number(Math.floor((_distance * (_consumption / 100)) * _price).toFixed(2)),
-            //     depreciationPrice: Number(Math.floor(_distance * _depreciationPrice).toFixed(2)),
-            //     fuelVolume: Number(Math.floor(_distance * (_consumption / 100)).toFixed(2)),
-            //     id: newID
-            // }
-
             const fuelPrice = Number(Math.floor((_distance * (_consumption / 100)) * _price).toFixed(2))
             const deprecationPrice = Number(Math.floor(_distance * _deprecationPrice).toFixed(2))
             const fuelVolume = Number(Math.floor(_distance * (_consumption / 100)).toFixed(2))

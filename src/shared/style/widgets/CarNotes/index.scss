@@ -7,11 +7,26 @@
     list-style: none;
 
     .car__note {
+        width: 320px;
+        max-width: 100%;
         border-radius: 5px;
         outline: 1px solid #CACACA;
         
         .car__note-content {
             padding: 20px 25px;
+
+            .note__button {
+                background-color: transparent;
+                border: none;
+                outline: 1px solid $colorRed;
+                color: $colorBlack;
+
+                &:hover {
+                    -webkit-box-shadow: 0px 0px 8px 5px rgba(255, 0, 90, 0.2);
+                    -moz-box-shadow: 0px 0px 8px 5px rgba(255, 0, 90, 0.2);
+                    box-shadow: 0px 0px 8px 5px rgba(255, 0, 90, 0.2);
+                }
+            }
         }
     }
     

@@ -11,6 +11,14 @@
         justify-content: space-between;
         padding: 15px 0;
 
+        .header__logo {
+            @include textStyle(600, 30px, 35px, $colorBlack);
+
+            .logo-letter {
+                color: $colorRed
+            }
+        }
+
         .header__nav {
             display: flex;
             gap: 15px;

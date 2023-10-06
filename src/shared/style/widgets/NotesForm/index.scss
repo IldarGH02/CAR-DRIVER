@@ -5,4 +5,26 @@
     max-width: 100%;
     gap: 15px;
     margin-bottom: 35px;
+
+    .form-control {
+        &:focus { 
+            border-color: $colorRed;
+            -webkit-box-shadow: 0px 0px 8px 5px rgba(255, 0, 90, 0.2);
+            -moz-box-shadow: 0px 0px 8px 5px rgba(255, 0, 90, 0.2);
+            box-shadow: 0px 0px 8px 5px rgba(255, 0, 90, 0.2);
+        }
+    }
+
+    .notes__button {
+        background-color: transparent;
+        color: $colorBlack;
+        border: none;
+        outline: 1px solid $colorRed;
+
+        &:hover {
+            -webkit-box-shadow: 0px 0px 8px 5px rgba(255, 0, 90, 0.2);
+            -moz-box-shadow: 0px 0px 8px 5px rgba(255, 0, 90, 0.2);
+            box-shadow: 0px 0px 8px 5px rgba(255, 0, 90, 0.2);
+        }
+    }
 }

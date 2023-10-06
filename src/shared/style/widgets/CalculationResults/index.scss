@@ -8,14 +8,36 @@
     .fuel__result-calculation {
         display: flex;
         flex-direction: column;
+        position: relative;
         gap: 15px;
-        border-bottom: 1px solid #9e9d9d;
+        padding: 20px;
+        border: none;
+        border-radius: 5px;
+        outline: 1px solid #555555;
 
         .result__calculation {
             span {
                 @include textStyle(400, 22px, 25px, $colorRed)
             }
             @include textStyle(400, 20px, 25px, $colorBlack)
+        }
+
+        .result__delete {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            border-radius: 5px;
+            border: none;
+            outline: 1px solid $colorRed;
+            background-color: transparent;
+
+            &:hover {
+                transition: color .3s ease-in-out, box-shadow .3s ease-in-out;
+                color: $colorRed;
+                -webkit-box-shadow: 0px 0px 8px 5px rgba(255, 0, 90, 0.2);
+                -moz-box-shadow: 0px 0px 8px 5px rgba(255, 0, 90, 0.2);
+                box-shadow: 0px 0px 8px 5px rgba(255, 0, 90, 0.2);
+            }
         }
     }
 }

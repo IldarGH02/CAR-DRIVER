@@ -10,10 +10,9 @@ const Header = () => {
         <header className="header">
             <div className="container">
                 <div className="header__content">
-                    <Title
-                        className="header__title"
-                        titleName="CAR-DRIVER"
-                    />
+                    <div className="header__logo">
+                        <span className="header__logo-c logo-letter">C</span>AR-<span className="header__logo-d logo-letter">D</span>RIVER
+                    </div>
                     <div className="header__nav">
                         <NavLink to={routeHome()} className="header__link home__link">
                             Главная

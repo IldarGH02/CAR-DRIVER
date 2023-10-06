@@ -1,0 +1,45 @@
+.footer {
+    flex: 0 0 auto;
+    flex-shrink: 0;
+
+    .footer__content {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        padding: 15px 0;
+
+        .footer__logo {
+            display: flex;
+
+            .footer__logo-c {
+                @include textStyle(500, 30px, 25px, $colorRed)
+            }
+
+            .footer__logo-d {
+                @include textStyle(500, 30px, 25px, $colorBlack)
+            }
+        }
+    
+        .footer__nav {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 15px;
+
+            .footer__link svg {
+                width: 25px;
+                height: 25px;
+                color: $colorRed;
+
+                :hover {
+                    color: $hoverRedColor;
+                }
+            }
+
+            .active svg {
+                color: $colorBlack;
+            }
+        }
+    }
+}

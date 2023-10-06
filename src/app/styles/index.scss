@@ -1,0 +1,33 @@
+@import 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css';
+@import '../../shared/style/style.scss';
+
+html {
+    height: 100%;
+}
+
+body {
+    max-width: 560px;
+    margin: 0 auto;
+    height: 100vh;
+    font-family: 'Rubik', sans-serif;
+
+    #root {
+        height: 100%;
+
+        .wrapper {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+
+            .main {
+                flex: 1 0 auto;
+                flex-grow: 1;
+            }
+        }
+    }
+}
+
+
+
+
+

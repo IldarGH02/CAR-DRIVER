@@ -2,9 +2,6 @@ import { useAppSelector } from "../../features/hooks"
 import CalculationResults from "../../widgets/CalculationResult"
 import FuelForm from "../../widgets/FuelForm"
 import { Title } from "../../widgets/Title"
-
-import { routeMain } from "./routes"
-
 const FuelCalculator = () => {
     const results = useAppSelector(state => state.results.calculations)
 
@@ -25,7 +22,4 @@ const FuelCalculator = () => {
         </section>
     )
 }
-
-export { routeMain }
-
 export default FuelCalculator

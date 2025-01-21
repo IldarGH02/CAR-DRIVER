@@ -1,7 +1,7 @@
 import { removeNote } from "../../../app/store/slices/notesSlice"
 import { ICarNote } from "../../../app/types"
 import { useAppDispatch } from "../../../features/hooks"
-import FormButton from "../../../shared/ui/FormButton"
+import { MyButton } from "../../../shared/ui/MyButton"
 
 interface INote {
     item: ICarNote
@@ -14,19 +14,20 @@ const CarNote: React.FC<INote> = ({item}) => {
         dispatch(removeNote(item.id))
     }
 
+    console.log(item)
+
     return (
-        <li className="car__note">
+        <li className="car__note card">
             <div className="car__note-content">
                 <div className="note__description">
-                    <h3 className="note__title">{item.title}</h3>
                     <p className="note__text">{item.text}</p>
-                    <p className="note__date"> Планируемая дата: <span>{item.date}</span></p>
+                    <MyButton
+                        className="note__button"
+                        buttonName="Удалить"
+                        handleClick={deleteTodo}
+                    />
                 </div>
-                <FormButton
-                    className="note__button"
-                    buttonName="Удалить"
-                    handleClick={deleteTodo}
-                />
+                <span className='note__date'>{item.date}</span>
             </div>
         </li>
     )

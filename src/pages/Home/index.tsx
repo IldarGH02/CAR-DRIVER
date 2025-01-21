@@ -1,6 +1,4 @@
 import { Title } from "../../widgets/Title";
-import { routeMain } from "./routes";
-
 const Home = () => {
     return (
         <section className="home">
@@ -30,7 +28,4 @@ const Home = () => {
         </section>
     )
 }
-
-export { routeMain }
-
 export default Home

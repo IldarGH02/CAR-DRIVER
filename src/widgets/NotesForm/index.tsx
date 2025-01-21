@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { FormInput } from "../../shared/ui/FormInput"
-import FormButton from '../../shared/ui/FormButton'
+import { MyInput } from "../../shared/ui/MyInput"
+import { MyButton } from '../../shared/ui/MyButton'
 
 import { useAppDispatch } from '../../features/hooks'
 import { addNote } from '../../app/store/slices/notesSlice'
@@ -18,18 +18,14 @@ const NotesForm = () => {
         setText(targetValue)
     }
 
-    const handleInputDate = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const targetValue = e.target.value
-        setDate(targetValue)
-    }
-
     const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault()
         if(text.length > 0) {
             todoAddDispatch(addNote({
                 text: text,
-                date: date,
-                id: newID
+                date: new Date().toLocaleString(),
+                id: newID,
+                completed: false
             }))
             setText('')
             setDate('')
@@ -55,22 +51,14 @@ const NotesForm = () => {
 
     return (
         <form action="#" className="form__notes">
-            <FormInput
+            <MyInput
                 placeholder="Введите текст"
                 className="form__input notes-input"
                 value={text}
                 type="text"
                 handleInput={handleInputText}
             />
-            <FormInput
-                placeholder="Дата"
-                className="form__input notes-date"
-                value={date}
-                type="text"
-                handleInput={handleInputDate}
-            />
-
-            <FormButton
+            <MyButton
                 className='notes__button'
                 buttonName='Добавить заметку'
                 handleClick={handleClick}

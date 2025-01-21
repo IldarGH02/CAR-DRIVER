@@ -1,33 +1,66 @@
 .car__notes {
-    display: flex;
-    flex-flow: row wrap;
-    gap: 25px;
     margin: 0;
     padding: 0;
     list-style: none;
 
     .car__note {
-        width: 320px;
-        max-width: 100%;
+        min-width: 320px;
+        border: none;
         border-radius: 5px;
         outline: 1px solid #CACACA;
         
         .car__note-content {
-            padding: 20px 25px;
+            position: relative;
+            padding: 30px 25px;
 
-            .note__button {
-                background-color: transparent;
-                border: none;
-                outline: 1px solid $colorRed;
-                color: $colorBlack;
+            .note__description {
+                display: flex;
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
 
-                &:hover {
-                    -webkit-box-shadow: 0px 0px 8px 5px rgba(255, 0, 90, 0.2);
-                    -moz-box-shadow: 0px 0px 8px 5px rgba(255, 0, 90, 0.2);
-                    box-shadow: 0px 0px 8px 5px rgba(255, 0, 90, 0.2);
+                .note__text {
+                    margin: 0;
+                    @include textStyle(400, 17px, 20px, $colorBlack);
                 }
+
+                .note__button {
+                    background-color: transparent;
+                    border: none;
+                    outline: 1px solid $colorRed;
+                    color: $colorBlack;
+
+                    &:hover {
+                        -webkit-box-shadow: 0px 0px 8px 5px rgba(255, 0, 90, 0.2);
+                        -moz-box-shadow: 0px 0px 8px 5px rgba(255, 0, 90, 0.2);
+                        box-shadow: 0px 0px 8px 5px rgba(255, 0, 90, 0.2);
+                    }
+                }
+            }
+
+            .note__date {
+                position: absolute;
+                bottom: 5px;
+                left: 10px;
+                font-weight: 400;
+                font-size: 14px;
+                color: rgba(0, 0, 0, 0.6);
             }
         }
     }
-    
+}
+
+.car__notes-enter {
+    opacity: 0;
+}
+.car__notes-enter-active {
+    opacity: 1;
+    transition: opacity 200ms;
+}
+.car__notes-exit {
+    opacity: 1;
+}
+.car__notes-exit-active {
+    opacity: 0;
+    transition: opacity 200ms;
 }

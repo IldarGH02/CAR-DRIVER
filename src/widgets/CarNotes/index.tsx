@@ -7,8 +7,9 @@ interface INotes {
 
 const CarNotes: React.FC<INotes> = ({notes}) => {
     return (
-        <ul className="car__notes">
-            {notes.length > 0 && notes.map((note: ICarNote) => {
+        <ul
+            className="car__notes d-grid row-cols-4 gap-3">
+            {notes.length > 0 && notes.map((note) => {
                 return <CarItem
                     key={note.id}
                     item={note}

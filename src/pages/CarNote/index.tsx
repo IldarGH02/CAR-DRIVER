@@ -1,4 +1,3 @@
-import { routeMain } from "./routes"
 import { useAppSelector } from "../../features/hooks"
 import CarNotes from "../../widgets/CarNotes"
 import NotesForm from "../../widgets/NotesForm"
@@ -24,7 +23,4 @@ const CarNotePage = () => {
         </section>
     )
 }
-
-export {routeMain}
-
 export default CarNotePage

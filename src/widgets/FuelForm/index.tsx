@@ -1,9 +1,9 @@
 import { useState } from "react"
 import { Form } from "react-bootstrap"
 
-import FormButton from "../../shared/ui/FormButton"
+import { MyButton } from "../../shared/ui/MyButton"
 
-import { FormInput } from "../../shared/ui/FormInput"
+import { MyInput } from "../../shared/ui/MyInput"
 import { useAppDispatch } from "../../features/hooks"
 import { prepareValue } from "../../features/func/fuel-func"
 import { calculation } from "../../app/store/slices/calculationSlice"
@@ -104,35 +104,39 @@ const FuelForm = () => {
 
     return (
         <Form className="fuel__form">
-            <FormInput
+            <MyInput
                 placeholder="Расстояние"
                 className="form__input distance"
                 value={distace}
                 type="number"
                 handleInput={getDistanceValue}
             />
-            <FormInput
+            <MyInput
                 placeholder="Средний расход топлива"
                 className="form__input consumption"
                 value={consuption}
                 type="number"
                 handleInput={getConsuptionValue}
             />
-            <FormInput
+            <MyInput
                 placeholder="Стоимость топлива"
                 className="form__input price"
                 value={price}
                 type="number"
                 handleInput={getPriceValue}
             />
-            <FormInput
+            <MyInput
                 placeholder="Амортизация"
                 className="form__input derpecation"
                 value={deprecation}
                 type="number"
                 handleInput={getDeprecationValue}
             />
-            <FormButton className="form__button" handleClick={handleClick} buttonName='Рассчитать'/>
+            <MyButton
+                className="form__button"
+                handleClick={handleClick}
+                buttonName='Рассчитать'
+            />
         </Form>
     )
 }

@@ -5,7 +5,9 @@ import { runMigrations } from './migrate.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const dbPath = path.resolve(__dirname, '../../../data/database.sqlite');
+const dbPath = process.env.NODE_ENV === 'production'
+    ? '/app/data/database.sqlite'
+    : path.resolve(__dirname, '../../data/database.sqlite');
 
 const db = new sqlite3.Database(dbPath);
 

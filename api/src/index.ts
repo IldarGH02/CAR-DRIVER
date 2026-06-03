@@ -35,7 +35,7 @@ const start = async () => {
 
         fastify.get('/health', async () => ({ status: 'ok', timestamp: new Date().toISOString() }));
 
-        const port = parseInt(process.env.PORT || '8080');
+        const port = parseInt(process.env.PORT || '3000');
         const host = '0.0.0.0';
 
         await fastify.listen({ port, host });

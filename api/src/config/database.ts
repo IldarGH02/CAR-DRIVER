@@ -1,15 +1,32 @@
 import sqlite3 from 'sqlite3';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import fs from 'fs';
 import { runMigrations } from './migrate.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const dbPath = process.env.NODE_ENV === 'production'
+
+const isProduction = process.env.NODE_ENV === 'production';
+const dbPath = isProduction
     ? '/app/data/database.sqlite'
     : path.resolve(__dirname, '../../data/database.sqlite');
 
+// Создаём директорию, если её нет
+const dbDir = path.dirname(dbPath);
+if (!fs.existsSync(dbDir)) {
+    fs.mkdirSync(dbDir, { recursive: true });
+    console.log(`📁 Created database directory: ${dbDir}`);
+}
+
+console.log(`📁 Database path: ${dbPath}`);
+
 const db = new sqlite3.Database(dbPath);
+
+// Обработка ошибок при открытии БД
+db.on('error', (err) => {
+    console.error('Database error:', err);
+});
 
 export const run = (sql: string, params: any[] = []): Promise<any> => {
     return new Promise((resolve, reject) => {
@@ -39,6 +56,7 @@ export const all = (sql: string, params: any[] = []): Promise<any[]> => {
 };
 
 export const initDatabase = async (): Promise<void> => {
+    console.log('🔧 Initializing database...');
     await runMigrations();
     await run(`
       CREATE TABLE IF NOT EXISTS verification_codes (
@@ -50,6 +68,5 @@ export const initDatabase = async (): Promise<void> => {
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     `);
+    console.log('✅ Database initialized');
 };
-
-export default db;

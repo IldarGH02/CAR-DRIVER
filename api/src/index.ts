@@ -1,18 +1,20 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import jwt from '@fastify/jwt';
-import { initDatabase } from './config/database';
-import authRoutes from './routes/authRoutes';
-import tripRoutes from './routes/tripRoutes';
-import reportRoutes from './routes/reportRoutes';
-import settingsRoutes from './routes/settingsRoutes';
-import { errorHandler } from './middleware/errorHandler';
+import { initDatabase } from './config/database.js';
+import authRoutes from './routes/authRoutes.js';
+import tripRoutes from './routes/tripRoutes.js';
+import reportRoutes from './routes/reportRoutes.js';
+import settingsRoutes from './routes/settingsRoutes.js';
+import { errorHandler } from './middleware/errorHandler.js';
 
 const fastify = Fastify({ logger: true });
 
 const start = async () => {
     try {
         console.log('Starting server...');
+        console.log(`NODE_ENV: ${process.env.NODE_ENV || 'development'}`);
+        console.log(`PORT: ${process.env.PORT || '3000'}`);
 
         await initDatabase();
         console.log('Database initialized');
@@ -42,10 +44,11 @@ const start = async () => {
         fastify.get('/health', async () => ({
             status: 'ok',
             timestamp: new Date().toISOString(),
-            uptime: process.uptime()
+            uptime: process.uptime(),
+            environment: process.env.NODE_ENV || 'development'
         }));
 
-        // КРИТИЧЕСКИ ВАЖНО: Timeweb ожидает порт 3000
+        // Timeweb ожидает порт 3000
         const port = parseInt(process.env.PORT || '3000');
         const host = '0.0.0.0';
 
@@ -62,6 +65,19 @@ const start = async () => {
         process.exit(1);
     }
 };
+
+// Graceful shutdown
+process.on('SIGINT', async () => {
+    console.log('SIGINT received, closing server...');
+    await fastify.close();
+    process.exit(0);
+});
+
+process.on('SIGTERM', async () => {
+    console.log('SIGTERM received, closing server...');
+    await fastify.close();
+    process.exit(0);
+});
 
 // Запускаем сервер
 start();

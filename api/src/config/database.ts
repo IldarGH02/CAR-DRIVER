@@ -8,8 +8,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const isProduction = process.env.NODE_ENV === 'production';
-const dbPath = isProduction
-    ? '/app/data/database.sqlite'
+const dbPath = process.env.NODE_ENV === 'production'
+    ? '/app/api/data/database.sqlite'
     : path.resolve(__dirname, '../../data/database.sqlite');
 
 // Создаём директорию, если её нет

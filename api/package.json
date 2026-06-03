@@ -1,0 +1,29 @@
+{
+  "name": "car-driver-api",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch ./src/index.ts",
+    "start": "node dist/index.js",
+    "build": "tsc",
+    "init-db": "tsx ./src/scripts/init-db.ts"
+  },
+  "dependencies": {
+    "@fastify/cors": "^8.5.0",
+    "@fastify/jwt": "^7.0.0",
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^17.4.2",
+    "fastify": "^4.28.0",
+    "nodemailer": "^8.0.10",
+    "sqlite3": "^5.1.7",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^20.11.0",
+    "@types/nodemailer": "^8.0.0",
+    "@types/sqlite3": "^3.1.11",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.3"
+  }
+}

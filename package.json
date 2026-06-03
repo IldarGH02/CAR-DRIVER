@@ -1,60 +1,16 @@
 {
-  "name": "car-service",
-  "version": "0.1.0",
+  "name": "car-driver",
+  "version": "1.0.0",
   "private": true,
-  "dependencies": {
-    "@testing-library/jest-dom": "^5.17.0",
-    "@testing-library/react": "^13.4.0",
-    "@testing-library/user-event": "^13.5.0",
-    "@types/jest": "^27.5.2",
-    "@types/node": "^16.18.52",
-    "@types/react": "^18.2.22",
-    "@types/react-dom": "^18.2.7",
-    "@types/react-transition-group": "^4.4.10",
-    "compose-function": "^3.0.3",
-    "nanoid": "^5.0.1",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-icons": "^4.11.0",
-    "react-scripts": "5.0.1",
-    "react-transition-group": "^4.4.5",
-    "typescript": "^4.9.5",
-    "web-vitals": "^2.1.4"
-  },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
+    "dev": "concurrently \"npm run dev:client\" \"npm run dev:api\"",
+    "dev:client": "cd client && npm run dev",
+    "dev:api": "cd api && npm run dev",
+    "install:all": "npm install && cd client && npm install && cd ../api && npm install",
+    "build": "cd client && npm run build && cd ../api && npm run build",
+    "start": "cd api && npm start"
   },
   "devDependencies": {
-    "@reduxjs/toolkit": "^1.9.5",
-    "@types/compose-function": "^0.0.31",
-    "@types/react-bootstrap": "^0.32.32",
-    "@types/react-router-dom": "^5.3.3",
-    "bootstrap": "^5.3.2",
-    "react-bootstrap": "^2.8.0",
-    "react-redux": "^8.1.2",
-    "react-router-dom": "^6.16.0",
-    "redux-persist": "^6.0.0",
-    "sass": "^1.67.0"
+    "concurrently": "^8.2.2"
   }
 }

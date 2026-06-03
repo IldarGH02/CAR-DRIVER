@@ -1,0 +1,10 @@
+{
+  "name": "GoTrack",
+  "short_name": "GoTrack",
+  "description": "Учёт поездок и расчёт амортизации автомобиля",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "icons": []
+}

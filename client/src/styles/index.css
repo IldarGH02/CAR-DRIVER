@@ -1,0 +1,100 @@
+@import './fonts.css';
+@import './tailwind.css';
+@import './theme.css';
+
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--muted);
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--muted-foreground);
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--primary);
+}
+
+/* Плавный скролл */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Запрещаем скролл body, разрешаем только контейнерам */
+body {
+    overflow: hidden;
+}
+
+/* Для Firefox */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--muted-foreground) var(--muted);
+}
+
+/* Адаптивные утилиты */
+@layer utilities {
+    .container-responsive {
+        width: 100%;
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+
+    @media (min-width: 640px) {
+        .container-responsive {
+            max-width: 640px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+    }
+
+    @media (min-width: 768px) {
+        .container-responsive {
+            max-width: 768px;
+        }
+    }
+
+    @media (min-width: 1024px) {
+        .container-responsive {
+            max-width: 1024px;
+        }
+    }
+
+    @media (min-width: 1280px) {
+        .container-responsive {
+            max-width: 1280px;
+        }
+    }
+}
+
+/* Адаптивные таблицы */
+@media (max-width: 768px) {
+    button,
+    a,
+    [role="button"],
+    input,
+    select {
+        min-height: 44px;
+    }
+
+    html {
+        scroll-behavior: smooth;
+    }
+
+    body {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+    }
+}
+
+@media (max-width: 768px) {
+    input, select, textarea {
+        font-size: 16px !important;
+    }
+}

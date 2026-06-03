@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Используем переменную окружения для API URL с правильной типизацией
-const API_URL = 'https://ildargh02-car-driver-2f75.twc1.net';
+const API_URL = 'https://ildargh02-car-driver-2f75.twc1.net/api';
 
 console.log('🔧 API URL:', API_URL); // Для отладки
 

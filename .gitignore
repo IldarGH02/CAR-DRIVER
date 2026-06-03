@@ -81,7 +81,3 @@ data/
 # Резервные копии
 *.backup
 *.old
-
-# Папка с отчетами
-reports/
-exported_reports/

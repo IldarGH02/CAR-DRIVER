@@ -3,3 +3,11 @@ declare module '@tailwindcss/vite' {
     const plugin: () => Plugin
     export default plugin
 }
+
+interface ImportMetaEnv {
+    readonly VITE_API_URL: string;
+}
+
+interface ImportMeta {
+    readonly env: ImportMetaEnv;
+}

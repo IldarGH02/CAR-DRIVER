@@ -1,11 +1,16 @@
 import axios from 'axios';
 
+// Используем переменную окружения для API URL с правильной типизацией
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+
+console.log('🔧 API URL:', API_URL); // Для отладки
+
 export const api = axios.create({
-    baseURL: 'http://localhost:3001/api',
+    baseURL: API_URL,
     headers: {
         'Content-Type': 'application/json',
     },
-    timeout: 10000,
+    timeout: 30000, // Увеличил таймаут для сервера
 });
 
 api.interceptors.request.use(
@@ -30,7 +35,7 @@ api.interceptors.response.use(
         if (error.response?.status === 401) {
             localStorage.removeItem('token');
             localStorage.removeItem('user-storage');
-            window.location.href = '/';
+            window.location.href = '/login';
         }
         return Promise.reject(error);
     }

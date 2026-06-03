@@ -1,6 +1,6 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
-import { get, run } from '../config/database.js';
-import { sendVerificationCode } from '../services/emailService.js';
+import { get, run } from '../config/database';
+import { sendVerificationCode } from '../services/emailService';
 
 // Генерация 6-значного кода
 const generateCode = (): string => {

@@ -1,4 +1,4 @@
-import { get, run, all } from '../config/database.js';
+import { get, run, all } from '../config/database';
 import bcrypt from 'bcryptjs';
 
 export interface User {

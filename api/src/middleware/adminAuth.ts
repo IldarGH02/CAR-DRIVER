@@ -1,5 +1,5 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
-import { UserModel } from '../models/User.js';
+import { UserModel } from '../models/User';
 
 export const adminAuth = async (request: FastifyRequest, reply: FastifyReply) => {
     console.log('=== adminAuth middleware ===');

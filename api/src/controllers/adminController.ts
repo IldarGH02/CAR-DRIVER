@@ -1,6 +1,6 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
-import { UserModel } from '../models/User.js';
-import { TripModel } from '../models/Trip.js';
+import { UserModel } from '../models/User';
+import { TripModel } from '../models/Trip';
 
 export const adminController = {
     checkAdmin: async (request: FastifyRequest, reply: FastifyReply) => {

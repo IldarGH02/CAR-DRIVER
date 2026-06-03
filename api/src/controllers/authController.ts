@@ -1,5 +1,5 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
-import { UserModel } from '../models/User.js';
+import { UserModel } from '../models/User';
 
 interface RegisterBody {
     email: string;

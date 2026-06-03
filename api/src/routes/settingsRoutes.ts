@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify';
-import { authenticate } from '../middleware/auth.js';
-import { settingsController } from '../controllers/settingsController.js';
+import { authenticate } from '../middleware/auth';
+import { settingsController } from '../controllers/settingsController';
 
 export default async function settingsRoutes(fastify: FastifyInstance) {
     // Получение настроек

@@ -1,4 +1,4 @@
-import { get, all, run } from '../config/database.js';
+import { get, all, run } from '../config/database';
 
 export interface Trip {
     id: number;

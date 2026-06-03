@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify';
-import { authenticate } from '../middleware/auth.js';
-import { adminController } from '../controllers/adminController.js';
-import { adminAuth } from '../middleware/adminAuth.js';
+import { authenticate } from '../middleware/auth';
+import { adminController } from '../controllers/adminController';
+import { adminAuth } from '../middleware/adminAuth';
 
 export default async function adminRoutes(fastify: FastifyInstance) {
     // Все маршруты требуют авторизации

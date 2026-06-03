@@ -5,66 +5,33 @@ import { registerSchema, RegisterFormData } from '@shared/lib/validation/registe
 import { Button } from '@shared/ui/button';
 import { Input } from '@shared/ui/input';
 import { Label } from '@shared/ui/label';
-import { VerificationForm } from '@features/auth/components';
-import { api } from '@shared/api/axiosInstance';
 import { toast } from 'sonner';
 import { useAuthStore } from '../model/authStore';
 
 export function RegisterForm() {
     const [showPassword, setShowPassword] = useState(false);
-    const [isVerifying, setIsVerifying] = useState(false);
-    const [tempEmail, setTempEmail] = useState('');
     const { register: registerUser, isLoading } = useAuthStore();
 
     const {
         register,
         handleSubmit,
         formState: { errors },
-        getValues,
     } = useForm<RegisterFormData>({
         resolver: zodResolver(registerSchema),
     });
 
+    // Регистрация сразу, без верификации
     const onSubmit = async (data: RegisterFormData) => {
-        setTempEmail(data.email);
-
-        try {
-            const response = await api.post('/auth/send-code', { email: data.email });
-            if (response.data.success) {
-                setIsVerifying(true);
-                toast.success('Код подтверждения отправлен на почту');
-                if (response.data.previewUrl) {
-                    console.log('Preview URL:', response.data.previewUrl);
-                }
-            } else {
-                toast.error(response.data.message || 'Ошибка отправки кода');
-            }
-        } catch (error) {
-            toast.error('Ошибка отправки кода');
-        }
-    };
-
-    const handleVerified = async () => {
-        const data = getValues();
+        // Вызываем регистрацию напрямую
         const success = await registerUser(data.email, data.password, data.name);
+
         if (success) {
-            toast.success('Регистрация завершена!');
+            toast.success('Регистрация успешно завершена!');
+            // useAuthStore уже должен перенаправлять на Dashboard
+        } else {
+            toast.error('Ошибка регистрации');
         }
     };
-
-    const handleBack = () => {
-        setIsVerifying(false);
-    };
-
-    if (isVerifying) {
-        return (
-            <VerificationForm
-                email={tempEmail}
-                onVerified={handleVerified}
-                onBack={handleBack}
-            />
-        );
-    }
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -118,7 +85,7 @@ export function RegisterForm() {
             </div>
 
             <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? 'Отправка кода...' : 'Зарегистрироваться'}
+                {isLoading ? 'Регистрация...' : 'Зарегистрироваться'}
             </Button>
         </form>
     );

@@ -3,10 +3,7 @@ import '@fastify/jwt';
 
 declare module 'fastify' {
     interface FastifyRequest {
-        user: {
-            id: number;
-            email: string;
-        };
+        authenticate?: () => Promise<void>;
     }
 }
 
@@ -23,7 +20,6 @@ declare module '@fastify/jwt' {
     }
 }
 
-// ... остальные типы
 export interface User {
     id: number;
     email: string;

@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { authController } from '../controllers/authController';
 import { authenticate } from '../middleware/auth';
-import { sendCode, verifyCode } from '../controllers/verificationController';
+// import { sendCode, verifyCode } from '../controllers/verificationController';
 
 export default async function authRoutes(fastify: FastifyInstance) {
     fastify.post('/register', authController.register);
@@ -9,6 +9,6 @@ export default async function authRoutes(fastify: FastifyInstance) {
     fastify.get('/me', { preHandler: authenticate }, authController.getMe);
 
     // Новые маршруты для верификации
-    fastify.post('/send-code', sendCode);
-    fastify.post('/verify-code', verifyCode);
+    // fastify.post('/send-code', sendCode);
+    // fastify.post('/verify-code', verifyCode);
 }

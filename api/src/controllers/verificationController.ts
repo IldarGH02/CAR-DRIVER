@@ -2,12 +2,10 @@ import { FastifyRequest, FastifyReply } from 'fastify';
 import { get, run } from '../config/database';
 import { sendVerificationCode } from '../services/emailService';
 
-// Генерация 6-значного кода
 const generateCode = (): string => {
     return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
-// Отправка кода верификации
 export const sendCode = async (request: FastifyRequest<{ Body: { email: string } }>, reply: FastifyReply) => {
     const { email } = request.body;
 

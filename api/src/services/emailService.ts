@@ -4,7 +4,6 @@ import nodemailer from 'nodemailer';
 let transporter: nodemailer.Transporter | null = null;
 
 const initTransporter = () => {
-    // Проверяем наличие необходимых переменных
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
         console.warn('⚠️ Email credentials not configured. Email sending disabled.');
         return null;
@@ -12,8 +11,8 @@ const initTransporter = () => {
 
     try {
         const smtpConfig = {
-            host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-            port: parseInt(process.env.EMAIL_PORT || '587'),
+            host: process.env.EMAIL_HOST || 'smtp.mail.ru',
+            port: parseInt(process.env.EMAIL_PORT || '465'),
             secure: false,
             auth: {
                 user: process.env.EMAIL_USER,
@@ -22,17 +21,6 @@ const initTransporter = () => {
         };
 
         transporter = nodemailer.createTransport(smtpConfig);
-
-        // Проверяем конфигурацию только если есть credentials
-        if (process.env.NODE_ENV !== 'production') {
-            transporter.verify((error, success) => {
-                if (error) {
-                    console.warn('⚠️ Email service verification failed:', error.message);
-                } else {
-                    console.log('✅ Email service ready');
-                }
-            });
-        }
 
         return transporter;
     } catch (error) {

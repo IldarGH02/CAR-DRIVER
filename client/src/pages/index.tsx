@@ -1,4 +1,4 @@
-export { Reports } from './Reports/Reports';
+export { Reports } from './Reports/Reports.tsx'
 export { Login } from './Login/Login';
 export { Dashboard } from './Dashboard/Dashboard';
 export { Trips } from './Trips/Trips';

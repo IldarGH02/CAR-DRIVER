@@ -6,6 +6,33 @@ export const SettingsModel = {
         return row;
     },
 
+    // НОВЫЙ МЕТОД: получить настройки (алиас для findByUserId)
+    getSettings: async (userId: number) => {
+        return SettingsModel.findByUserId(userId);
+    },
+
+    // НОВЫЙ МЕТОД: создать настройки по умолчанию
+    createSettings: async (userId: number, data?: any) => {
+        return run(
+            `INSERT INTO settings (user_id, currency, distance_unit, fuel_unit, amortization_rate, notifications, auto_save) 
+             VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            [
+                userId,
+                data?.currency || 'RUB',
+                data?.distance_unit || 'km',
+                data?.fuel_unit || 'liters',
+                data?.amortization_rate || 2.68,
+                data?.notifications !== undefined ? (data.notifications ? 1 : 0) : 1,
+                data?.auto_save !== undefined ? (data.auto_save ? 1 : 0) : 1
+            ]
+        );
+    },
+
+    // НОВЫЙ МЕТОД: обновить настройки (алиас для update)
+    updateSettings: async (userId: number, data: any) => {
+        return SettingsModel.update(userId, data);
+    },
+
     update: async (userId: number, data: any) => {
         const fields: string[] = [];
         const values: any[] = [];

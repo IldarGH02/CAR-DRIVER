@@ -1,17 +1,18 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { UserModel } from '../models/User';
+import { SettingsModel } from '../models/Settings'; // ← добавить импорт
 
 export const settingsController = {
     // Получение настроек пользователя
     getSettings: async (request: FastifyRequest, reply: FastifyReply) => {
         try {
             const userId = (request.user as any).id;
-            let settings = await UserModel.getSettings(userId);
+            let settings = await SettingsModel.getSettings(userId); // ← ИСПРАВЛЕНО
 
             if (!settings) {
                 // Если настроек нет, создаем стандартные
-                await UserModel.createSettings(userId);
-                settings = await UserModel.getSettings(userId);
+                await SettingsModel.createSettings(userId); // ← ИСПРАВЛЕНО
+                settings = await SettingsModel.getSettings(userId); // ← ИСПРАВЛЕНО
             }
 
             return reply.send({ success: true, settings });
@@ -28,13 +29,13 @@ export const settingsController = {
             const data = request.body as any;
 
             // Проверяем, существуют ли настройки
-            const existingSettings = await UserModel.getSettings(userId);
+            const existingSettings = await SettingsModel.getSettings(userId); // ← ИСПРАВЛЕНО
             if (!existingSettings) {
-                await UserModel.createSettings(userId);
+                await SettingsModel.createSettings(userId); // ← ИСПРАВЛЕНО
             }
 
-            await UserModel.updateSettings(userId, data);
-            const settings = await UserModel.getSettings(userId);
+            await SettingsModel.updateSettings(userId, data); // ← ИСПРАВЛЕНО
+            const settings = await SettingsModel.getSettings(userId); // ← ИСПРАВЛЕНО
 
             return reply.send({ success: true, settings });
         } catch (error) {
@@ -43,7 +44,7 @@ export const settingsController = {
         }
     },
 
-    // Обновление профиля пользователя
+    // Обновление профиля пользователя (этот метод правильный, не меняем)
     updateProfile: async (request: FastifyRequest, reply: FastifyReply) => {
         try {
             const userId = (request.user as any).id;

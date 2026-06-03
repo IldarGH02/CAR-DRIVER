@@ -44,7 +44,16 @@ export const adminController = {
                 return reply.code(400).send({ success: false, message: 'Email already exists' });
             }
 
-            const user = await UserModel.create(email, password, name, role || 'user');
+            // ИСПРАВЛЕНО: передаем только 3 аргумента
+            const user = await UserModel.create(email, password, name);
+
+            // Если указана роль и она не "user", обновляем роль
+            if (role && role !== 'user') {
+                await UserModel.update(user.id, { role });
+                const updatedUser = await UserModel.findById(user.id);
+                return reply.send({ success: true, user: updatedUser });
+            }
+
             return reply.send({ success: true, user });
         } catch (error) {
             console.error(error);
@@ -107,7 +116,6 @@ export const adminController = {
         }
     },
 
-    // Добавление поездки для пользователя
     addUserTrip: async (request: FastifyRequest<{ Params: { userId: string }; Body: {
             date: string;
             from: string;

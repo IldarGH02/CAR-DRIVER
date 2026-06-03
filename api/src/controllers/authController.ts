@@ -33,13 +33,9 @@ export const authController = {
             }
 
             const user = await UserModel.create(email, password, name);
-            // В JWT кладем только id и email (как требует @fastify/jwt)
-            const token = await reply.jwtSign({
-                id: user.id,
-                email: user.email
-            });
+            const token = await reply.jwtSign({ id: user.id, email: user.email });
 
-            // Получаем полные данные пользователя с автомобилем
+            // ИСПРАВЛЕНО: получаем полные данные пользователя
             const fullUser = await UserModel.findById(user.id);
 
             return reply.send({
@@ -88,13 +84,9 @@ export const authController = {
                 });
             }
 
-            // В JWT кладем только id и email (как требует @fastify/jwt)
-            const token = await reply.jwtSign({
-                id: user.id,
-                email: user.email
-            });
+            const token = await reply.jwtSign({ id: user.id, email: user.email });
 
-            // Получаем полные данные пользователя с автомобилем
+            // ИСПРАВЛЕНО: получаем полные данные пользователя
             const fullUser = await UserModel.findById(user.id);
 
             return reply.send({
@@ -118,7 +110,6 @@ export const authController = {
 
     getMe: async (request: FastifyRequest, reply: FastifyReply) => {
         try {
-            // Получаем id из токена (доступен как request.user.id)
             const userId = (request.user as { id: number; email: string }).id;
 
             if (!userId) {

@@ -43,11 +43,9 @@ export const UserModel = {
         return bcrypt.compare(password, hashedPassword);
     },
 
-    // ОБНОВЛЕННЫЙ update: добавил возможность обновлять role
     update: async (id: number, data: any) => {
         const { name, car_model, car_year, license_plate, role } = data;
 
-        // Динамически строим запрос в зависимости от того, какие поля переданы
         const updates = [];
         const values = [];
 

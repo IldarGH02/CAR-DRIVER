@@ -7,23 +7,23 @@ export const adminController = {
         try {
             const user = await UserModel.findById((request.user as any).id);
             if (user?.role !== 'admin') {
-                reply.code(403).send({ success: false, message: 'Access denied' });
+                reply.code(403).send({ success: false, message: 'Access denied. Admin rights required.' });
                 return false;
             }
             return true;
         } catch (error) {
+            console.error('Check admin error:', error);
             reply.code(500).send({ success: false, message: 'Server error' });
             return false;
         }
     },
 
     getAllUsers: async (request: FastifyRequest, reply: FastifyReply) => {
-        console.log('=== getAllUsers called ===');
-        console.log('User from token:', request.user);
+        const isAdmin = await adminController.checkAdmin(request, reply);
+        if (!isAdmin) return;
 
         try {
             const users = await UserModel.findAll();
-            console.log('Users found:', users.length);
             return reply.send({ success: true, users });
         } catch (error) {
             console.error('Error in getAllUsers:', error);
@@ -32,6 +32,9 @@ export const adminController = {
     },
 
     createUser: async (request: FastifyRequest<{ Body: { email: string; password: string; name: string; role?: string } }>, reply: FastifyReply) => {
+        const isAdmin = await adminController.checkAdmin(request, reply);
+        if (!isAdmin) return;
+
         const { email, password, name, role } = request.body;
 
         if (!email || !password || !name) {
@@ -44,10 +47,8 @@ export const adminController = {
                 return reply.code(400).send({ success: false, message: 'Email already exists' });
             }
 
-            // ИСПРАВЛЕНО: передаем только 3 аргумента
             const user = await UserModel.create(email, password, name);
 
-            // Если указана роль и она не "user", обновляем роль
             if (role && role !== 'user') {
                 await UserModel.update(user.id, { role });
                 const updatedUser = await UserModel.findById(user.id);
@@ -62,6 +63,9 @@ export const adminController = {
     },
 
     updateUser: async (request: FastifyRequest<{ Params: { id: string }; Body: { name?: string; role?: string; carModel?: string; carYear?: string; licensePlate?: string } }>, reply: FastifyReply) => {
+        const isAdmin = await adminController.checkAdmin(request, reply);
+        if (!isAdmin) return;
+
         const userId = parseInt(request.params.id);
         const data = request.body;
 
@@ -83,6 +87,9 @@ export const adminController = {
     },
 
     deleteUser: async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+        const isAdmin = await adminController.checkAdmin(request, reply);
+        if (!isAdmin) return;
+
         const userId = parseInt(request.params.id);
 
         try {
@@ -95,6 +102,9 @@ export const adminController = {
     },
 
     getUserTrips: async (request: FastifyRequest<{ Params: { userId: string }; Querystring: { dateFrom?: string; dateTo?: string } }>, reply: FastifyReply) => {
+        const isAdmin = await adminController.checkAdmin(request, reply);
+        if (!isAdmin) return;
+
         const userId = parseInt(request.params.userId);
         const { dateFrom, dateTo } = request.query;
 
@@ -128,6 +138,9 @@ export const adminController = {
             expenseLine?: string;
             status?: string
         } }>, reply: FastifyReply) => {
+        const isAdmin = await adminController.checkAdmin(request, reply);
+        if (!isAdmin) return;
+
         const userId = parseInt(request.params.userId);
         const data = request.body;
 
@@ -153,6 +166,9 @@ export const adminController = {
     },
 
     deleteUserTrip: async (request: FastifyRequest<{ Params: { userId: string; tripId: string } }>, reply: FastifyReply) => {
+        const isAdmin = await adminController.checkAdmin(request, reply);
+        if (!isAdmin) return;
+
         const userId = parseInt(request.params.userId);
         const tripId = parseInt(request.params.tripId);
 

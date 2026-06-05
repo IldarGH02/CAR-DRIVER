@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@shared/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@shared/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@shared/ui/tabs";
 import { useTripsStoreData } from "@features/trips/model/tripsStore";
 import { TripForm } from "@features/trips/components/TripForm";
 import { TripTable } from "@features/trips/components/TripTable";
@@ -76,7 +76,7 @@ export function Trips() {
           {/* Header */}
           <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">Поездки</h2>
+              <h2 className="text-2xl md:text-3xl font-semibold">Поездки</h2>
               <p className="text-sm text-muted-foreground mt-1">
                 Управление всеми вашими командировками
               </p>
@@ -84,7 +84,7 @@ export function Trips() {
             <TripForm onAddTrip={addTrip} />
           </div>
 
-          {/* Stats Cards */}
+          {/* Stats Cards - 2 колонки на мобильных, 4 на десктопе */}
           <TripStats
               totalTrips={filteredStats.totalTrips}
               totalDistance={filteredStats.totalDistance}
@@ -97,17 +97,66 @@ export function Trips() {
             <CardHeader className="pb-3">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <CardTitle className="text-lg md:text-xl">Все поездки</CardTitle>
-                <Tabs defaultValue="all" value={statusFilter} onValueChange={setStatusFilter} className="w-full sm:w-auto">
-                  <TabsList className="grid grid-cols-4 w-full sm:w-[400px]">
-                    <TabsTrigger value="all">Все ({trips.length})</TabsTrigger>
-                    <TabsTrigger value="completed">Завершённые ({counts.completed})</TabsTrigger>
-                    <TabsTrigger value="planned">Запланированные ({counts.planned})</TabsTrigger>
-                    <TabsTrigger value="cancelled">Отменённые ({counts.cancelled})</TabsTrigger>
-                  </TabsList>
-                </Tabs>
+                {!isMobile && (
+                    <Tabs defaultValue="all" value={statusFilter} onValueChange={setStatusFilter} className="w-full sm:w-auto">
+                      <TabsList className="grid grid-cols-4 w-full sm:w-[400px]">
+                        <TabsTrigger value="all">Все ({trips.length})</TabsTrigger>
+                        <TabsTrigger value="completed">Завершённые ({counts.completed})</TabsTrigger>
+                        <TabsTrigger value="planned">Запланированные ({counts.planned})</TabsTrigger>
+                        <TabsTrigger value="cancelled">Отменённые ({counts.cancelled})</TabsTrigger>
+                      </TabsList>
+                    </Tabs>
+                )}
               </div>
             </CardHeader>
             <CardContent className="p-0 md:p-6">
+              {/* Мобильная версия фильтров */}
+              {isMobile && (
+                  <div className="px-4 pb-4">
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                          onClick={() => setStatusFilter("all")}
+                          className={`px-3 py-2 text-sm rounded-lg transition-colors ${
+                              statusFilter === "all"
+                                  ? "bg-primary text-primary-foreground"
+                                  : "bg-muted hover:bg-muted/80"
+                          }`}
+                      >
+                        Все ({trips.length})
+                      </button>
+                      <button
+                          onClick={() => setStatusFilter("completed")}
+                          className={`px-3 py-2 text-sm rounded-lg transition-colors ${
+                              statusFilter === "completed"
+                                  ? "bg-primary text-primary-foreground"
+                                  : "bg-muted hover:bg-muted/80"
+                          }`}
+                      >
+                        Завершённые ({counts.completed})
+                      </button>
+                      <button
+                          onClick={() => setStatusFilter("planned")}
+                          className={`px-3 py-2 text-sm rounded-lg transition-colors ${
+                              statusFilter === "planned"
+                                  ? "bg-primary text-primary-foreground"
+                                  : "bg-muted hover:bg-muted/80"
+                          }`}
+                      >
+                        Запланированные ({counts.planned})
+                      </button>
+                      <button
+                          onClick={() => setStatusFilter("cancelled")}
+                          className={`px-3 py-2 text-sm rounded-lg transition-colors ${
+                              statusFilter === "cancelled"
+                                  ? "bg-primary text-primary-foreground"
+                                  : "bg-muted hover:bg-muted/80"
+                          }`}
+                      >
+                        Отменённые ({counts.cancelled})
+                      </button>
+                    </div>
+                  </div>
+              )}
               <TripTable
                   trips={filteredTrips}
                   isLoading={isLoading}

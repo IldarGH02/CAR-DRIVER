@@ -10,62 +10,56 @@ interface TripStatsProps {
 }
 
 export const TripStats = ({ totalTrips, totalDistance, totalAmortization, totalFuelAmount }: TripStatsProps) => {
-    const stats = [
-        {
-            title: "Всего поездок",
-            value: totalTrips,
-            unit: "",
-            icon: Calendar,
-            color: "text-blue-600",
-            bgColor: "bg-blue-50",
-        },
-        {
-            title: "Общий пробег",
-            value: formatDistance(totalDistance),
-            unit: "",
-            icon: MapPin,
-            color: "text-green-600",
-            bgColor: "bg-green-50",
-        },
-        {
-            title: "Всего топлива",
-            value: roundToTwo(totalFuelAmount),
-            unit: "л",
-            icon: Fuel,
-            color: "text-orange-600",
-            bgColor: "bg-orange-50",
-        },
-        {
-            title: "Общая амортизация",
-            value: formatCurrency(totalAmortization),
-            unit: "",
-            icon: TrendingUp,
-            color: "text-purple-600",
-            bgColor: "bg-purple-50",
-        },
-    ];
-
     return (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
-            {stats.map((stat, index) => (
-                <Card key={index} className="overflow-hidden">
-                    <CardContent className="p-4">
-                        <div className="flex items-start justify-between">
-                            <div className="space-y-1">
-                                <p className="text-xs md:text-sm text-muted-foreground font-medium">
-                                    {stat.title}
-                                </p>
-                                <p className="text-lg md:text-2xl font-bold tracking-tight">
-                                    {stat.value} {stat.unit}
-                                </p>
-                            </div>
-                            <div className={`p-2 rounded-lg ${stat.bgColor}`}>
-                                <stat.icon className={`w-4 h-4 md:w-5 md:h-5 ${stat.color}`} />
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-            ))}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
+            <Card>
+                <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium text-muted-foreground flex items-center justify-between">
+                        Всего поездок
+                        <Calendar className="w-4 h-4 text-blue-500" />
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">{totalTrips}</div>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium text-muted-foreground flex items-center justify-between">
+                        Общий пробег
+                        <MapPin className="w-4 h-4 text-green-500" />
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">{formatDistance(totalDistance)}</div>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium text-muted-foreground flex items-center justify-between">
+                        Всего топлива
+                        <Fuel className="w-4 h-4 text-orange-500" />
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">{roundToTwo(totalFuelAmount)} л</div>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium text-muted-foreground flex items-center justify-between">
+                        Общая амортизация
+                        <TrendingUp className="w-4 h-4 text-purple-500" />
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">{formatCurrency(totalAmortization)}</div>
+                    <p className="text-xs text-muted-foreground mt-1">расчет: пробег × 5 ₽</p>
+                </CardContent>
+            </Card>
         </div>
     );
 };

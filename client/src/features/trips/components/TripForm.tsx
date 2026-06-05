@@ -154,7 +154,7 @@ export const TripForm = ({ onAddTrip }: TripFormProps) => {
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="avgConsumption">Средний расход (л/100 км)</Label>
+                            <Label htmlFor="avgConsumption">Ср.расход (л/100 км)</Label>
                             <Input
                                 id="avgConsumption"
                                 type="number"

@@ -9,6 +9,7 @@ import { ReportTypeCard } from "@features/reports/components/ReportTypeCard";
 import { StatsCard } from "@features/reports/components/StatsCard";
 import { AveragesCard } from "@features/reports/components/AveragesCard";
 import { TipCard } from "@features/reports/components/TipCard";
+import { ColumnSelector } from "@features/reports/components/ColumnSelector";
 import { useReports } from "@features/reports/hooks/useReports";
 
 export function Reports() {
@@ -20,10 +21,12 @@ export function Reports() {
     dateTo,
     reportType,
     isGenerating,
+    visibleColumns,
     setDateFrom,
     setDateTo,
     setReportType,
     handleGenerateReport,
+    toggleColumn,
   } = useReports();
 
   return (
@@ -58,6 +61,11 @@ export function Reports() {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Панель настройки колонок - показываем только для настраиваемого отчёта */}
+              {reportType === "custom" && (
+                  <ColumnSelector visibleColumns={visibleColumns} onToggleColumn={toggleColumn} />
+              )}
 
               <Card>
                 <CardHeader>

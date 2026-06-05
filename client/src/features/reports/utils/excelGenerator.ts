@@ -6,10 +6,39 @@ interface ExcelOptions {
     trips: Trip[];
     stats: ReportStats;
     user?: User | null;
+    visibleColumns?: string[];
 }
 
 export const generateExcel = (options: ExcelOptions): void => {
-    const { trips, stats, user } = options;
+    const { trips, stats, user, visibleColumns = ["date", "route", "purpose", "distance", "fuelAmount", "amortization"] } = options;
+
+    // Определяем заголовки
+    const getTableHeaders = () => {
+        const headers: string[] = [];
+        if (visibleColumns.includes("date")) headers.push("Дата");
+        if (visibleColumns.includes("route")) headers.push("Маршрут");
+        if (visibleColumns.includes("purpose")) headers.push("Цель");
+        if (visibleColumns.includes("distance")) headers.push("Пробег (км)");
+        if (visibleColumns.includes("fuelAmount")) headers.push("Топливо (л)");
+        if (visibleColumns.includes("amortization")) headers.push("Амортизация (₽)");
+        if (visibleColumns.includes("expenseLine")) headers.push("Строка расходов");
+        return headers;
+    };
+
+    // Получаем данные строки
+    const getRowData = (trip: Trip) => {
+        const row: (string | number)[] = [];
+        if (visibleColumns.includes("date")) row.push(new Date(trip.date).toLocaleDateString('ru-RU'));
+        if (visibleColumns.includes("route")) row.push(`${trip.from} → ${trip.to} → ${trip.from}`);
+        if (visibleColumns.includes("purpose")) row.push(trip.purpose);
+        if (visibleColumns.includes("distance")) row.push(trip.distance);
+        if (visibleColumns.includes("fuelAmount")) row.push((trip.fuelAmount || 0).toLocaleString());
+        if (visibleColumns.includes("amortization")) row.push(trip.amortization.toLocaleString());
+        if (visibleColumns.includes("expenseLine")) row.push((trip as any).expenseLine || "—");
+        return row;
+    };
+
+    const headers = getTableHeaders();
 
     const html = `
     <!DOCTYPE html>
@@ -42,8 +71,10 @@ export const generateExcel = (options: ExcelOptions): void => {
           <thead><tr><th>Показатель</th><th>Значение</th></tr></thead>
           <tbody>
             <tr><td style="padding: 6px;">Всего поездок</td><td class="text-center"><strong>${stats.totalTrips}</strong></td></tr>
-            <tr><td style="padding: 6px;">Общий пробег</td><td class="text-center"><strong>${stats.totalDistance.toLocaleString()} км</strong></td></tr>
-            <tr><td style="padding: 6px;">Всего топлива</td><td class="text-center"><strong>${stats.totalFuelAmount.toLocaleString()} л</strong></td></tr>
+            ${visibleColumns.includes("distance") ? `<tr><td style="padding: 6px;">Общий пробег</td><td class="text-center"><strong>${stats.totalDistance.toLocaleString()} км</strong></td></tr>` : ''}
+            ${visibleColumns.includes("fuelAmount") ? `<tr><td style="padding: 6px;">Всего топлива</td><td class="text-center"><strong>${stats.totalFuelAmount.toLocaleString()} л</strong></td></tr>` : ''}
+            ${visibleColumns.includes("amortization") ? `<tr><td style="padding: 6px;">Общая амортизация</td><td class="text-center"><strong>${stats.totalAmortization.toLocaleString()} ₽</strong></td></tr>` : ''}
+            <tr class="total"><td style="padding: 6px;">Всего расходов</td><td class="text-center"><strong>${stats.totalExpenses.toLocaleString()} ₽</strong></td></tr>
             <tr><td style="padding: 6px;">Средний расход топлива</td><td class="text-center"><strong>${stats.averageFuelConsumption} л/100км</strong></td></tr>
           </tbody>
         </table>
@@ -51,30 +82,19 @@ export const generateExcel = (options: ExcelOptions): void => {
         <h3>Список поездок</h3>
         <table>
           <thead>
-            <tr>
-              <th>№</th><th>Дата</th><th>Маршрут</th><th>Цель</th>
-              <th>Пробег (км)</th><th>Топливо (л)</th><th>Строка расходов</th>
-            </tr>
+            <tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr>
           </thead>
           <tbody>
             ${trips.map((trip, index) => `
               <tr>
-                <td>${index + 1}</td>
-                <td>${new Date(trip.date).toLocaleDateString('ru-RU')}</td>
-                <td>${trip.from} → ${trip.to}</td>
-                <td>${trip.purpose}</td>
-                <td class="text-center">${trip.distance}</td>
-                <td class="text-center"><strong>${(trip.fuelAmount || 0).toLocaleString()}</strong></td>
-                <td>${(trip as any).expenseLine || '—'}</td>
+                ${getRowData(trip).map(cell => `<td>${cell}</td>`).join('')}
               </tr>
             `).join('')}
           </tbody>
           <tfoot>
-            <tr style="background: #f0f0f0;">
-              <td colspan="4"><strong>ИТОГО:</strong></td>
-              <td class="text-center"><strong>${stats.totalDistance.toLocaleString()}</strong></td>
-              <td class="text-center"><strong>${stats.totalFuelAmount.toLocaleString()}</strong></td>
-              <td></td>
+            <tr class="total">
+              <td colspan="${headers.length - 1}"><strong>ИТОГО:</strong></td>
+              <td><strong>${stats.totalExpenses.toLocaleString()} ₽</strong></td>
             </tr>
           </tfoot>
         </table>

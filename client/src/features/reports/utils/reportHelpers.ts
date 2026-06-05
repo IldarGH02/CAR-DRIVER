@@ -5,6 +5,8 @@ export interface ReportStats {
     totalTrips: number;
     totalDistance: number;
     totalFuelAmount: number;
+    totalAmortization: number;
+    totalExpenses: number;
     averageFuelConsumption: string;
 }
 
@@ -28,6 +30,8 @@ export const calculateStats = (trips: Trip[]): ReportStats => {
     const totalTrips = trips.length;
     const totalDistance = roundToOne(trips.reduce((sum, t) => sum + t.distance, 0));
     const totalFuelAmount = roundToTwo(trips.reduce((sum, t) => sum + (t.fuelAmount || 0), 0));
+    const totalAmortization = roundToTwo(trips.reduce((sum, t) => sum + t.amortization, 0));
+    const totalExpenses = roundToTwo(totalAmortization);
 
     // Берем средний расход из сохраненного значения avgConsumption
     let avgFuelConsumption = 0;
@@ -45,6 +49,8 @@ export const calculateStats = (trips: Trip[]): ReportStats => {
         totalTrips,
         totalDistance,
         totalFuelAmount,
+        totalAmortization,
+        totalExpenses,
         averageFuelConsumption: avgFuelConsumption.toFixed(1)
     };
 };

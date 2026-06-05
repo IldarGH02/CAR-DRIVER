@@ -6,7 +6,7 @@ import { filterTripsByPeriod, calculateStats } from "../utils/reportHelpers";
 import { toast } from "sonner";
 import { generatePDF } from "../utils/pdfGenerator";
 import { generateExcel } from "../utils/excelGenerator";
-import { reportTypes } from "../config/reportTypes";
+import { reportTypes, availableColumns } from "../config/reportTypes";
 
 export const useReports = () => {
     const { trips, fetchTrips } = useTripsStoreData();
@@ -16,6 +16,18 @@ export const useReports = () => {
     const [dateTo, setDateTo] = useState("");
     const [reportType, setReportType] = useState("full");
     const [isGenerating, setIsGenerating] = useState(false);
+    const [visibleColumns, setVisibleColumns] = useState<string[]>(() => {
+        // Загружаем сохранённые настройки из localStorage
+        const saved = localStorage.getItem("report_visible_columns");
+        if (saved) {
+            try {
+                return JSON.parse(saved);
+            } catch (e) {
+                return availableColumns.filter(c => c.defaultVisible).map(c => c.id);
+            }
+        }
+        return availableColumns.filter(c => c.defaultVisible).map(c => c.id);
+    });
 
     useEffect(() => {
         fetchTrips();
@@ -23,10 +35,23 @@ export const useReports = () => {
         fetchUser();
     }, []);
 
+    // Сохраняем настройки колонок
+    useEffect(() => {
+        localStorage.setItem("report_visible_columns", JSON.stringify(visibleColumns));
+    }, [visibleColumns]);
+
     const period = useMemo(() => ({ dateFrom, dateTo }), [dateFrom, dateTo]);
     const filteredTrips = useMemo(() => filterTripsByPeriod(trips, period), [trips, period]);
     const stats = useMemo(() => calculateStats(filteredTrips), [filteredTrips]);
     const currentReportType = useMemo(() => reportTypes.find(t => t.id === reportType) || reportTypes[0], [reportType]);
+
+    const toggleColumn = useCallback((columnId: string) => {
+        setVisibleColumns(prev =>
+            prev.includes(columnId)
+                ? prev.filter(id => id !== columnId)
+                : [...prev, columnId]
+        );
+    }, []);
 
     const handleGenerateReport = useCallback(async () => {
         if (filteredTrips.length === 0) {
@@ -42,14 +67,16 @@ export const useReports = () => {
                     trips: filteredTrips,
                     stats,
                     period,
-                    user
+                    user,
+                    visibleColumns,
                 });
                 toast.success("PDF отчет успешно сгенерирован!");
             } else {
                 generateExcel({
                     trips: filteredTrips,
                     stats,
-                    user
+                    user,
+                    visibleColumns,
                 });
                 toast.success("Excel отчет успешно сгенерирован!");
             }
@@ -59,7 +86,7 @@ export const useReports = () => {
         } finally {
             setIsGenerating(false);
         }
-    }, [filteredTrips, stats, period, user, currentReportType]);
+    }, [filteredTrips, stats, period, user, currentReportType, visibleColumns]);
 
     return {
         trips,
@@ -70,9 +97,11 @@ export const useReports = () => {
         reportType,
         isGenerating,
         user,
+        visibleColumns,
         setDateFrom,
         setDateTo,
         setReportType,
         handleGenerateReport,
+        toggleColumn,
     };
 };

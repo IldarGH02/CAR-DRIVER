@@ -5,7 +5,7 @@ import { Input } from "@shared/ui/input";
 import { Label } from "@shared/ui/label";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
-import { calculateAmortization, calculateFuelAmount, calculateFuelCost } from "../utils/tripHelpers";
+import { calculateAmortization, calculateFuelAmount } from "../utils/tripHelpers";
 
 interface TripFormData {
     date: string;
@@ -13,7 +13,6 @@ interface TripFormData {
     to: string;
     distance: string;
     avgConsumption: string;
-    fuelPrice: string;
     expenseLine?: string;
     purpose: string;
 }
@@ -24,7 +23,6 @@ const initialFormData: TripFormData = {
     to: "",
     distance: "",
     avgConsumption: "",
-    fuelPrice: "",
     expenseLine: "",
     purpose: "",
 };
@@ -40,7 +38,17 @@ export const TripForm = ({ onAddTrip }: TripFormProps) => {
     const handleAddTrip = async () => {
         const distance = parseFloat(formData.distance);
         const avgConsumption = parseFloat(formData.avgConsumption) || 0;
-        const fuelPrice = parseFloat(formData.fuelPrice) || 0;
+        const tripDate = new Date(formData.date);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // Определяем статус поездки на основе даты
+        let status: "completed" | "planned" | "cancelled" = "planned";
+        if (tripDate <= today) {
+            status = "completed";
+        } else {
+            status = "planned";
+        }
 
         // Амортизация: пробег * 5
         const amortization = calculateAmortization(distance, 5);
@@ -48,8 +56,8 @@ export const TripForm = ({ onAddTrip }: TripFormProps) => {
         // Расчет количества топлива из среднего расхода
         const fuelAmount = calculateFuelAmount(avgConsumption, distance);
 
-        // Расчет стоимости топлива (для внутреннего учета)
-        const fuelCost = calculateFuelCost(fuelAmount, fuelPrice);
+        // Стоимость топлива (может быть рассчитана или введена вручную)
+        const fuelCost = fuelAmount * 50;
 
         const newTrip = {
             date: formData.date,
@@ -62,13 +70,13 @@ export const TripForm = ({ onAddTrip }: TripFormProps) => {
             purpose: formData.purpose,
             expenseLine: formData.expenseLine || "",
             avgConsumption: avgConsumption,
-            status: "completed" as const,
+            status: status,
         };
 
         const success = await onAddTrip(newTrip);
 
         if (success) {
-            toast.success(`Поездка добавлена! Требуется топлива: ${fuelAmount.toFixed(2)} л (${fuelCost.toFixed(2)} ₽)`);
+            toast.success(`Поездка добавлена! Статус: ${status === "completed" ? "Завершена" : "Запланирована"}`);
             setIsDialogOpen(false);
             setFormData(initialFormData);
         } else {
@@ -146,7 +154,7 @@ export const TripForm = ({ onAddTrip }: TripFormProps) => {
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="avgConsumption">Ср.расход (л/100 км)</Label>
+                            <Label htmlFor="avgConsumption">Средний расход (л/100 км)</Label>
                             <Input
                                 id="avgConsumption"
                                 type="number"
@@ -157,32 +165,14 @@ export const TripForm = ({ onAddTrip }: TripFormProps) => {
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="fuelPrice">Цена топлива (₽/л)</Label>
+                            <Label htmlFor="expenseLine">Строка расходов</Label>
                             <Input
-                                id="fuelPrice"
-                                type="number"
-                                step="0.01"
-                                placeholder="54.50"
-                                value={formData.fuelPrice}
-                                onChange={(e) => setFormData({ ...formData, fuelPrice: e.target.value })}
+                                id="expenseLine"
+                                placeholder="ОХЗ Перспективное строительство"
+                                value={formData.expenseLine}
+                                onChange={(e) => setFormData({ ...formData, expenseLine: e.target.value })}
                             />
                         </div>
-                    </div>
-
-                    <div className="space-y-2">
-                        <Label htmlFor="expenseLine">Строка расходов (опционально)</Label>
-                        <Input
-                            id="expenseLine"
-                            placeholder="Укажите тип расходов"
-                            value={formData.expenseLine}
-                            onChange={(e) => setFormData({ ...formData, expenseLine: e.target.value })}
-                        />
-                    </div>
-
-                    <div className="text-sm text-muted-foreground bg-muted p-2 rounded">
-                        * Амортизация: {formData.distance || 0} км × 5 ₽ = {(parseFloat(formData.distance) * 5 || 0).toFixed(2)} ₽
-                        <br />
-                        * Топливо: {((parseFloat(formData.avgConsumption) * parseFloat(formData.distance)) / 100 || 0).toFixed(2)} л × {(parseFloat(formData.fuelPrice) || 0).toFixed(2)} ₽ = {(((parseFloat(formData.avgConsumption) * parseFloat(formData.distance)) / 100) * parseFloat(formData.fuelPrice) || 0).toFixed(2)} ₽
                     </div>
                 </div>
                 <Button onClick={handleAddTrip} className="w-full">

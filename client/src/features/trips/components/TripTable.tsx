@@ -1,7 +1,7 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@shared/ui/table";
 import { Button } from "@shared/ui/button";
 import { Badge } from "@shared/ui/badge";
-import { MapPin, Calendar, Trash2, Fuel } from "lucide-react";
+import { MapPin, Calendar, Trash2, Fuel, Clock, CheckCircle } from "lucide-react";
 import { Trip } from "../model/tripsStore";
 import { formatDate, formatCurrency, formatDistance, roundToTwo } from "@shared/utils/formatters";
 
@@ -12,18 +12,46 @@ interface TripTableProps {
     isMobile?: boolean;
 }
 
-const getStatusBadge = (status: string) => {
-    const variants: Record<string, string> = {
-        completed: "bg-green-100 text-green-800",
-        planned: "bg-blue-100 text-blue-800",
-        cancelled: "bg-red-100 text-red-800",
+const getStatusBadge = (status: string, date: string) => {
+    // Определяем статус по дате, если он не установлен или устарел
+    const tripDate = new Date(date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    let currentStatus = status;
+    if (tripDate <= today && status !== "cancelled") {
+        currentStatus = "completed";
+    } else if (tripDate > today && status !== "cancelled") {
+        currentStatus = "planned";
+    }
+
+    const variants: Record<string, { label: string; className: string; icon: any }> = {
+        completed: {
+            label: "Завершена",
+            className: "bg-green-100 text-green-800",
+            icon: CheckCircle
+        },
+        planned: {
+            label: "Запланирована",
+            className: "bg-blue-100 text-blue-800",
+            icon: Clock
+        },
+        cancelled: {
+            label: "Отменена",
+            className: "bg-red-100 text-red-800",
+            icon: CheckCircle
+        },
     };
-    const labels: Record<string, string> = {
-        completed: "Завершена",
-        planned: "Запланирована",
-        cancelled: "Отменена",
-    };
-    return <Badge className={variants[status] || variants.completed}>{labels[status] || labels.completed}</Badge>;
+
+    const variant = variants[currentStatus] || variants.planned;
+    const Icon = variant.icon;
+
+    return (
+        <Badge className={`${variant.className} flex items-center gap-1 w-fit`}>
+            <Icon className="w-3 h-3" />
+            {variant.label}
+        </Badge>
+    );
 };
 
 export const TripTable = ({ trips, isLoading, onDeleteTrip, isMobile }: TripTableProps) => {
@@ -52,7 +80,7 @@ export const TripTable = ({ trips, isLoading, onDeleteTrip, isMobile }: TripTabl
                                 <Calendar className="w-4 h-4 text-muted-foreground" />
                                 <span className="font-medium">{formatDate(trip.date)}</span>
                             </div>
-                            {getStatusBadge(trip.status)}
+                            {getStatusBadge(trip.status, trip.date)}
                         </div>
 
                         <div className="flex items-center gap-2">
@@ -153,7 +181,7 @@ export const TripTable = ({ trips, isLoading, onDeleteTrip, isMobile }: TripTabl
                             </TableCell>
                             <TableCell className="text-right">{formatCurrency(trip.amortization)}</TableCell>
                             <TableCell>{(trip as any).expenseLine || "—"}</TableCell>
-                            <TableCell>{getStatusBadge(trip.status)}</TableCell>
+                            <TableCell>{getStatusBadge(trip.status, trip.date)}</TableCell>
                             <TableCell className="text-right">
                                 <Button
                                     variant="ghost"

@@ -84,7 +84,7 @@ export function Trips() {
             <TripForm onAddTrip={addTrip} />
           </div>
 
-          {/* Stats Cards - 2 колонки на мобильных, 4 на десктопе */}
+          {/* Stats Cards */}
           <TripStats
               totalTrips={filteredStats.totalTrips}
               totalDistance={filteredStats.totalDistance}
@@ -95,24 +95,11 @@ export function Trips() {
           {/* Trips Table */}
           <Card>
             <CardHeader className="pb-3">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex flex-col gap-4">
                 <CardTitle className="text-lg md:text-xl">Все поездки</CardTitle>
-                {!isMobile && (
-                    <Tabs defaultValue="all" value={statusFilter} onValueChange={setStatusFilter} className="w-full sm:w-auto">
-                      <TabsList className="grid grid-cols-4 w-full sm:w-[400px]">
-                        <TabsTrigger value="all">Все ({trips.length})</TabsTrigger>
-                        <TabsTrigger value="completed">Завершённые ({counts.completed})</TabsTrigger>
-                        <TabsTrigger value="planned">Запланированные ({counts.planned})</TabsTrigger>
-                        <TabsTrigger value="cancelled">Отменённые ({counts.cancelled})</TabsTrigger>
-                      </TabsList>
-                    </Tabs>
-                )}
-              </div>
-            </CardHeader>
-            <CardContent className="p-0 md:p-6">
-              {/* Мобильная версия фильтров */}
-              {isMobile && (
-                  <div className="px-4 pb-4">
+
+                {/* Фильтры - отдельные кнопки для мобильных и десктопа */}
+                {isMobile ? (
                     <div className="grid grid-cols-2 gap-2">
                       <button
                           onClick={() => setStatusFilter("all")}
@@ -155,8 +142,53 @@ export function Trips() {
                         Отменённые ({counts.cancelled})
                       </button>
                     </div>
-                  </div>
-              )}
+                ) : (
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                          onClick={() => setStatusFilter("all")}
+                          className={`px-4 py-2 text-sm rounded-lg transition-colors ${
+                              statusFilter === "all"
+                                  ? "bg-primary text-primary-foreground"
+                                  : "bg-muted hover:bg-muted/80"
+                          }`}
+                      >
+                        Все ({trips.length})
+                      </button>
+                      <button
+                          onClick={() => setStatusFilter("completed")}
+                          className={`px-4 py-2 text-sm rounded-lg transition-colors ${
+                              statusFilter === "completed"
+                                  ? "bg-primary text-primary-foreground"
+                                  : "bg-muted hover:bg-muted/80"
+                          }`}
+                      >
+                        Завершённые ({counts.completed})
+                      </button>
+                      <button
+                          onClick={() => setStatusFilter("planned")}
+                          className={`px-4 py-2 text-sm rounded-lg transition-colors ${
+                              statusFilter === "planned"
+                                  ? "bg-primary text-primary-foreground"
+                                  : "bg-muted hover:bg-muted/80"
+                          }`}
+                      >
+                        Запланированные ({counts.planned})
+                      </button>
+                      <button
+                          onClick={() => setStatusFilter("cancelled")}
+                          className={`px-4 py-2 text-sm rounded-lg transition-colors ${
+                              statusFilter === "cancelled"
+                                  ? "bg-primary text-primary-foreground"
+                                  : "bg-muted hover:bg-muted/80"
+                          }`}
+                      >
+                        Отменённые ({counts.cancelled})
+                      </button>
+                    </div>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent className="p-0 md:p-6">
               <TripTable
                   trips={filteredTrips}
                   isLoading={isLoading}

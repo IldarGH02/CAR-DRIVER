@@ -1,5 +1,6 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { UserModel } from '../models/User';
+import { adminConfig, isAdminUser, getAdminUser } from '../config/adminConfig';
 
 interface RegisterBody {
     email: string;
@@ -24,6 +25,14 @@ export const authController = {
         }
 
         try {
+            // Проверяем, не пытается ли кто-то зарегистрировать email админа
+            if (email === adminConfig.email) {
+                return reply.code(400).send({
+                    success: false,
+                    message: 'This email is reserved'
+                });
+            }
+
             const existingUser = await UserModel.findByEmail(email);
             if (existingUser) {
                 return reply.code(400).send({
@@ -34,8 +43,6 @@ export const authController = {
 
             const user = await UserModel.create(email, password, name);
             const token = await reply.jwtSign({ id: user.id, email: user.email });
-
-            // ИСПРАВЛЕНО: получаем полные данные пользователя
             const fullUser = await UserModel.findById(user.id);
 
             return reply.send({
@@ -45,7 +52,7 @@ export const authController = {
                     id: fullUser?.id,
                     email: fullUser?.email,
                     name: fullUser?.name,
-                    role: fullUser?.role,
+                    role: fullUser?.role || 'user',
                     carModel: fullUser?.car_model,
                     carYear: fullUser?.car_year,
                     licensePlate: fullUser?.license_plate
@@ -68,6 +75,19 @@ export const authController = {
         }
 
         try {
+            // 👇 ПРОВЕРКА СТАТИЧЕСКОГО АДМИНА
+            if (isAdminUser(email, password)) {
+                const adminUser = getAdminUser();
+                const token = await reply.jwtSign({ id: adminUser.id, email: adminUser.email });
+
+                return reply.send({
+                    success: true,
+                    token,
+                    user: adminUser
+                });
+            }
+
+            // Обычная проверка из БД
             const user = await UserModel.findByEmail(email);
             if (!user) {
                 return reply.code(401).send({
@@ -84,26 +104,20 @@ export const authController = {
                 });
             }
 
-            // 👇 ДОБАВЬТЕ ЭТО: автоматическое обновление прав администратора
-            if (email === 'kooooooffe@gmail.com' && user.role !== 'admin') {
-                await UserModel.update(user.id, { role: 'admin' });
-                user.role = 'admin';
-                console.log('✅ Auto-promoted to admin:', email);
-            }
-
             const token = await reply.jwtSign({ id: user.id, email: user.email });
+            const fullUser = await UserModel.findById(user.id);
 
             return reply.send({
                 success: true,
                 token,
                 user: {
-                    id: user.id,
-                    email: user.email,
-                    name: user.name,
-                    role: user.role,
-                    carModel: user.car_model,
-                    carYear: user.car_year,
-                    licensePlate: user.license_plate
+                    id: fullUser?.id,
+                    email: fullUser?.email,
+                    name: fullUser?.name,
+                    role: fullUser?.role || 'user',
+                    carModel: fullUser?.car_model,
+                    carYear: fullUser?.car_year,
+                    licensePlate: fullUser?.license_plate
                 }
             });
         } catch (error) {
@@ -115,11 +129,20 @@ export const authController = {
     getMe: async (request: FastifyRequest, reply: FastifyReply) => {
         try {
             const userId = (request.user as { id: number; email: string }).id;
+            const userEmail = (request.user as { id: number; email: string }).email;
 
             if (!userId) {
                 return reply.code(401).send({
                     success: false,
                     message: 'Unauthorized'
+                });
+            }
+
+            // 👇 ПРОВЕРКА СТАТИЧЕСКОГО АДМИНА
+            if (userId === 0 || userEmail === adminConfig.email) {
+                return reply.send({
+                    success: true,
+                    user: getAdminUser()
                 });
             }
 
@@ -137,7 +160,7 @@ export const authController = {
                     id: user.id,
                     email: user.email,
                     name: user.name,
-                    role: user.role,
+                    role: user.role || 'user',
                     carModel: user.car_model,
                     carYear: user.car_year,
                     licensePlate: user.license_plate

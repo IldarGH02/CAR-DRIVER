@@ -225,14 +225,9 @@ const migrations: Migration[] = [
             const adminEmail = 'kooooooffe@gmail.com';
             const adminPassword = 'az27AL96darikBL';
 
-            // Импортируем bcrypt (может понадобиться в начале файла)
-            // import bcrypt from 'bcryptjs';
-
-            // Проверяем существование пользователя
             const existingUser = await get('SELECT id, role FROM users WHERE email = ?', [adminEmail]);
 
             if (existingUser) {
-                // Если пользователь существует, обновляем роль до admin
                 await run('UPDATE users SET role = "admin" WHERE email = ?', [adminEmail]);
                 console.log('  ✅ User promoted to admin:', adminEmail);
             } else {

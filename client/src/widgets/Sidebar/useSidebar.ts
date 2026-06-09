@@ -11,10 +11,16 @@ const baseMenuItems = [
     { id: "settings", label: "Настройки", icon: "Settings", path: "/settings", requiresAuth: true },
 ];
 
+const adminMenuItem = { id: "admin", label: "Админ-панель", icon: "Shield", path: "/admin", requiresAuth: true };
+
+// Проверка на статического админа (из кода, не из БД)
+const isStaticAdmin = (user: any): boolean => {
+    return user?.email === 'kooooooffe@gmail.com' && user?.id === 0;
+};
+
 export const useSidebar = () => {
     const [isMobileOpen, setIsMobileOpen] = useState(false);
     const [isCollapsed, setIsCollapsed] = useState(() => {
-        // Загружаем состояние из localStorage
         const saved = localStorage.getItem('sidebar-collapsed');
         return saved === 'true';
     });
@@ -27,7 +33,6 @@ export const useSidebar = () => {
         const checkMobile = () => {
             const mobile = window.innerWidth < 768;
             setIsMobile(mobile);
-            // На мобильных всегда развернуто
             if (mobile && isCollapsed) {
                 setIsCollapsed(false);
             }
@@ -37,7 +42,6 @@ export const useSidebar = () => {
         return () => window.removeEventListener('resize', checkMobile);
     }, []);
 
-    // Сохраняем состояние в localStorage
     useEffect(() => {
         localStorage.setItem('sidebar-collapsed', isCollapsed.toString());
     }, [isCollapsed]);
@@ -57,8 +61,9 @@ export const useSidebar = () => {
 
         const items = [...baseMenuItems];
 
-        if (user?.role === 'admin') {
-            items.push({ id: "admin", label: "Админ-панель", icon: "Shield", path: "/admin", requiresAuth: true });
+        // 👇 ПРОВЕРКА НА СТАТИЧЕСКОГО АДМИНА ИЛИ АДМИНА ИЗ БД
+        if (isStaticAdmin(user) || user?.role === 'admin') {
+            items.push(adminMenuItem);
         }
 
         return items;

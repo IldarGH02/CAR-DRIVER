@@ -23,15 +23,14 @@ const initTransporter = () => {
     transporter = nodemailer.createTransport({
         host: host,
         port: port,
-        secure: secure, // Timeweb обычно использует STARTTLS, не SSL
+        secure: secure,
         auth: {
             user: user,
             pass: pass,
         },
         tls: {
-            rejectUnauthorized: false, // Важно для Timeweb
+            rejectUnauthorized: false,
         },
-        // Для Timeweb может потребоваться явное указание STARTTLS
         requireTLS: true,
     });
 
@@ -40,7 +39,7 @@ const initTransporter = () => {
         if (error) {
             console.error('❌ Email transporter verification failed:', error);
             console.log('💡 Troubleshooting tips for Timeweb:');
-            console.log('   1. Check if email exists: corsdata@yandex.ru');
+            console.log('   1. Check if email exists: inbox@rugotrack.ru');
             console.log('   2. Try port 25 or 587 instead of 2525');
             console.log('   3. Check if SMTP is enabled in Timeweb panel');
             console.log('   4. Verify password is correct');

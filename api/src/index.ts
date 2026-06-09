@@ -10,8 +10,11 @@ import settingsRoutes from './routes/settingsRoutes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
 const fastify = Fastify({
-    logger: process.env.NODE_ENV === 'development',
-    trustProxy: true
+    logger: false, // Отключаем логгер в продакшене
+    trustProxy: true,
+    // Важно для Timeweb - увеличиваем таймауты
+    connectionTimeout: 120000,
+    keepAliveTimeout: 120000
 });
 
 fastify.decorate('authenticate', async (request, reply) => {
@@ -24,7 +27,10 @@ fastify.decorate('authenticate', async (request, reply) => {
 
 const start = async () => {
     try {
+        console.log('🚀 Starting server...');
+
         await initDatabase();
+        console.log('✅ Database initialized');
 
         await fastify.register(cors, {
             origin: (origin, cb) => {
@@ -40,60 +46,87 @@ const start = async () => {
                 if (!origin || allowedOrigins.includes(origin)) {
                     cb(null, true);
                 } else {
-                    cb(new Error('Not allowed by CORS'), false);
+                    cb(null, false);
                 }
             },
             credentials: true,
             methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
             allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
         });
+        console.log('✅ CORS registered');
 
         await fastify.register(jwt, {
             secret: process.env.JWT_SECRET || 'your-secret-key-change-this',
             sign: { expiresIn: '7d' }
         });
+        console.log('✅ JWT registered');
 
         await fastify.register(authRoutes, { prefix: '/api/auth' });
         await fastify.register(tripRoutes, { prefix: '/api/trips' });
         await fastify.register(reportRoutes, { prefix: '/api/reports' });
         await fastify.register(settingsRoutes, { prefix: '/api/settings' });
+        console.log('✅ Routes registered');
 
         fastify.setErrorHandler(errorHandler);
 
         fastify.get('/health', async () => ({
             status: 'ok',
-            timestamp: new Date().toISOString(),
-            uptime: process.uptime(),
-            environment: process.env.NODE_ENV || 'development'
+            timestamp: new Date().toISOString()
         }));
 
         const port = parseInt(process.env.PORT || '3000');
-        const host = process.env.HOST || '0.0.0.0';
+        const host = '0.0.0.0';
 
         await fastify.listen({ port, host });
 
+        console.log(`✅ Server running on port ${port}`);
+        console.log(`✅ Health check: http://${host}:${port}/health`);
+
+        // Важно для Timeweb App Platform - сигнал что сервер готов
+        if (process.send) {
+            process.send('ready');
+        }
+
     } catch (err) {
-        console.error('Fatal error during startup:', err);
+        console.error('❌ Fatal error during startup:', err);
         process.exit(1);
     }
 };
 
-process.on('SIGTERM', () => {
-    fastify.close(() => process.exit(0));
+// Graceful shutdown для Timeweb App Platform
+process.on('SIGTERM', async () => {
+    console.log('SIGTERM received, closing gracefully...');
+    try {
+        await fastify.close();
+        console.log('Server closed');
+        process.exit(0);
+    } catch (err) {
+        console.error('Error during close:', err);
+        process.exit(1);
+    }
 });
 
-process.on('SIGINT', () => {
-    fastify.close(() => process.exit(0));
+process.on('SIGINT', async () => {
+    console.log('SIGINT received, closing gracefully...');
+    try {
+        await fastify.close();
+        console.log('Server closed');
+        process.exit(0);
+    } catch (err) {
+        console.error('Error during close:', err);
+        process.exit(1);
+    }
 });
 
+// Не выходим при необработанных ошибках, а логируем
 process.on('uncaughtException', (error) => {
     console.error('Uncaught Exception:', error);
-    process.exit(1);
+    // Не выходим, чтобы сервер продолжал работать
 });
 
-process.on('unhandledRejection', (reason, promise) => {
+process.on('unhandledRejection', (reason) => {
     console.error('Unhandled Rejection:', reason);
-    process.exit(1);
+    // Не выходим, чтобы сервер продолжал работать
 });
 
 start();

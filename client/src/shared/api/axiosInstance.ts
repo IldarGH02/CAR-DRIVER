@@ -4,7 +4,7 @@ const getBaseURL = () => {
     if (import.meta.env.PROD) {
         return import.meta.env.VITE_API_URL || '/api';
     }
-    return import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+    return import.meta.env.VITE_API_URL || 'https://ildargh02-car-driver-2f75.twc1.net/api';
 };
 
 const API_URL = getBaseURL();

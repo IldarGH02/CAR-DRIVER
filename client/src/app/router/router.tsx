@@ -1,6 +1,7 @@
 import { createBrowserRouter } from "react-router-dom";
 import App from "../App.tsx";
 import { Privacy, Admin, Login, Settings, Reports, Trips, FuelCalculator, Dashboard } from '@pages/index.tsx';
+import { ProtectedRoute } from "@features/auth/components";
 
 export const router = createBrowserRouter([
     {
@@ -9,31 +10,55 @@ export const router = createBrowserRouter([
         children: [
             {
                 index: true,
-                element: <Dashboard />,
+                element: (
+                    <ProtectedRoute>
+                        <Dashboard />
+                    </ProtectedRoute>
+                ),
             },
             {
                 path: "calculator",
-                element: <FuelCalculator />,
+                element: (
+                    <ProtectedRoute>
+                        <FuelCalculator />
+                    </ProtectedRoute>
+                ),
             },
             {
                 path: "trips",
-                element: <Trips />,
+                element: (
+                    <ProtectedRoute>
+                        <Trips />
+                    </ProtectedRoute>
+                ),
             },
             {
                 path: "reports",
-                element: <Reports />,
+                element: (
+                    <ProtectedRoute>
+                        <Reports />
+                    </ProtectedRoute>
+                ),
             },
             {
                 path: "settings",
-                element: <Settings />,
+                element: (
+                    <ProtectedRoute>
+                        <Settings />
+                    </ProtectedRoute>
+                ),
             },
             {
                 path: "admin",
-                element: <Admin />,
+                element: (
+                    <ProtectedRoute>
+                        <Admin />
+                    </ProtectedRoute>
+                ),
             },
             {
                 path: "privacy",
-                element: <Privacy />,
+                element: <Privacy />, // Политика конфиденциальности обычно публичная
             },
         ],
     },

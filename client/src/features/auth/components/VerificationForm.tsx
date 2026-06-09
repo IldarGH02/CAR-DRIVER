@@ -1,9 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@shared/ui/button';
-import { Input } from '@shared/ui/input';
-import { Label } from '@shared/ui/label';
 import { toast } from 'sonner';
-import { api } from '@shared/api/axiosInstance';
+import { authApi } from '../api/authApi';
+import { useUserStore } from '@entities/user/model/userStore';
 
 interface VerificationFormProps {
     email: string;
@@ -12,19 +11,44 @@ interface VerificationFormProps {
 }
 
 export const VerificationForm = ({ email, onVerified, onBack }: VerificationFormProps) => {
+    const { setUser } = useUserStore();
     const [code, setCode] = useState(['', '', '', '', '', '']);
     const [isLoading, setIsLoading] = useState(false);
     const [isResending, setIsResending] = useState(false);
     const [timer, setTimer] = useState(60);
     const [canResend, setCanResend] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const intervalRef = useRef<NodeJS.Timeout | undefined>(undefined);
+
+    useEffect(() => {
+        startTimer();
+        return () => {
+            if (intervalRef.current) {
+                clearInterval(intervalRef.current);
+            }
+        };
+    }, []);
+
+    useEffect(() => {
+        if (error) {
+            setError(null);
+        }
+    }, [code]);
 
     const startTimer = () => {
         setTimer(60);
         setCanResend(false);
-        const interval = setInterval(() => {
+
+        if (intervalRef.current) {
+            clearInterval(intervalRef.current);
+        }
+
+        intervalRef.current = setInterval(() => {
             setTimer((prev) => {
                 if (prev <= 1) {
-                    clearInterval(interval);
+                    if (intervalRef.current) {
+                        clearInterval(intervalRef.current);
+                    }
                     setCanResend(true);
                     return 0;
                 }
@@ -35,22 +59,26 @@ export const VerificationForm = ({ email, onVerified, onBack }: VerificationForm
 
     const handleResendCode = async () => {
         setIsResending(true);
-        try {
-            const response = await api.post('/auth/send-code', { email });
-            if (response.data.success) {
-                toast.success('Код отправлен повторно');
-                startTimer();
-                if (response.data.previewUrl) {
-                    console.log('Preview URL:', response.data.previewUrl);
-                }
-            } else {
-                toast.error(response.data.message || 'Ошибка отправки кода');
+        setError(null);
+
+        const result = await authApi.sendVerificationCode(email);
+
+        if (result.success) {
+            toast.success('Код отправлен повторно');
+            setCode(['', '', '', '', '', '']);
+            startTimer();
+
+            if (result.previewUrl) {
+                console.log('Preview URL:', result.previewUrl);
+                toast.info(`Код отправлен: ${result.previewUrl}`, {
+                    duration: 5000,
+                });
             }
-        } catch (error) {
-            toast.error('Ошибка отправки кода');
-        } finally {
-            setIsResending(false);
+        } else {
+            toast.error(result.message || 'Ошибка отправки кода');
         }
+
+        setIsResending(false);
     };
 
     const handleCodeChange = (index: number, value: string) => {
@@ -61,10 +89,14 @@ export const VerificationForm = ({ email, onVerified, onBack }: VerificationForm
         newCode[index] = value;
         setCode(newCode);
 
-        // Автоматически переключаемся на следующий input
         if (value && index < 5) {
             const nextInput = document.getElementById(`code-${index + 1}`);
             nextInput?.focus();
+        }
+
+        // Автоматическая проверка при заполнении всех полей
+        if (newCode.every(digit => digit !== '') && !isLoading) {
+            handleVerify(newCode.join(''));
         }
     };
 
@@ -75,26 +107,55 @@ export const VerificationForm = ({ email, onVerified, onBack }: VerificationForm
         }
     };
 
-    const handleVerify = async () => {
-        const verificationCode = code.join('');
-        if (verificationCode.length !== 6) {
+    const handleVerify = async (verificationCode?: string) => {
+        const finalCode = verificationCode || code.join('');
+
+        if (finalCode.length !== 6) {
+            setError('Введите 6-значный код');
             toast.error('Введите 6-значный код');
             return;
         }
 
         setIsLoading(true);
-        try {
-            const response = await api.post('/auth/verify-code', { email, code: verificationCode });
-            if (response.data.success) {
-                toast.success('Код подтвержден');
-                onVerified();
-            } else {
-                toast.error(response.data.message || 'Неверный код');
+        setError(null);
+
+        // Верифицируем код и получаем токен
+        const result = await authApi.verifyCode(email, finalCode);
+
+        if (result.success && result.token) {
+            // Сохраняем токен в localStorage
+            localStorage.setItem('token', result.token);
+            if (result.user) {
+                localStorage.setItem('user-storage', JSON.stringify(result.user));
+                // 👇 ОБНОВЛЯЕМ СТОР
+                setUser(result.user);
             }
-        } catch (error) {
-            toast.error('Ошибка проверки кода');
-        } finally {
-            setIsLoading(false);
+
+            toast.success('Код подтвержден! Выполняется вход...');
+
+            // Вызываем onVerified для редиректа
+            onVerified();
+        } else {
+            const errorMessage = result.message || 'Неверный код подтверждения';
+            setError(errorMessage);
+            toast.error(errorMessage);
+            setCode(['', '', '', '', '', '']);
+            const firstInput = document.getElementById('code-0');
+            firstInput?.focus();
+        }
+
+        setIsLoading(false);
+    };
+
+    const handlePaste = (e: React.ClipboardEvent) => {
+        e.preventDefault();
+        const pastedText = e.clipboardData.getData('text');
+        const pastedCode = pastedText.replace(/\D/g, '').slice(0, 6);
+
+        if (pastedCode.length === 6) {
+            const newCode = pastedCode.split('');
+            setCode(newCode);
+            handleVerify(pastedCode);
         }
     };
 
@@ -102,11 +163,17 @@ export const VerificationForm = ({ email, onVerified, onBack }: VerificationForm
         <div className="space-y-6">
             <div className="text-center">
                 <p className="text-sm text-muted-foreground">
-                    Введите код подтверждения, отправленный на {email}
+                    Введите код подтверждения, отправленный на <strong>{email}</strong>
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                    Код действителен в течение 10 минут
                 </p>
             </div>
 
-            <div className="flex justify-center gap-2">
+            <div
+                className="flex justify-center gap-2"
+                onPaste={handlePaste}
+            >
                 {code.map((digit, index) => (
                     <input
                         key={index}
@@ -117,26 +184,56 @@ export const VerificationForm = ({ email, onVerified, onBack }: VerificationForm
                         value={digit}
                         onChange={(e) => handleCodeChange(index, e.target.value)}
                         onKeyDown={(e) => handleKeyDown(index, e)}
-                        className="w-12 h-12 text-center text-2xl font-bold border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                        className={`w-12 h-12 text-center text-2xl font-bold border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition-colors
+                            ${error
+                            ? 'border-red-500 focus:ring-red-500'
+                            : digit
+                                ? 'border-primary'
+                                : 'border-gray-300'
+                        }`}
+                        disabled={isLoading}
                     />
                 ))}
             </div>
 
+            {error && (
+                <div className="text-center">
+                    <p className="text-sm text-red-500 animate-pulse">
+                        {error}
+                    </p>
+                </div>
+            )}
+
             <div className="text-center">
                 <button
                     onClick={handleResendCode}
-                    disabled={!canResend || isResending}
-                    className="text-sm text-primary hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={!canResend || isResending || isLoading}
+                    className="text-sm text-primary hover:underline disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                    {isResending ? 'Отправка...' : canResend ? 'Отправить код повторно' : `Повторно через ${timer} сек`}
+                    {isResending ? (
+                        'Отправка...'
+                    ) : canResend ? (
+                        'Отправить код повторно'
+                    ) : (
+                        `Повторно через ${timer} сек`
+                    )}
                 </button>
             </div>
 
             <div className="flex gap-3">
-                <Button onClick={onBack} variant="outline" className="flex-1">
+                <Button
+                    onClick={onBack}
+                    variant="outline"
+                    className="flex-1"
+                    disabled={isLoading}
+                >
                     Назад
                 </Button>
-                <Button onClick={handleVerify} className="flex-1" disabled={isLoading}>
+                <Button
+                    onClick={() => handleVerify()}
+                    className="flex-1"
+                    disabled={isLoading || code.some(digit => digit === '')}
+                >
                     {isLoading ? 'Проверка...' : 'Подтвердить'}
                 </Button>
             </div>

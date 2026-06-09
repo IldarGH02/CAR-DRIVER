@@ -24,4 +24,32 @@ export const authApi = {
             };
         }
     },
+
+    // ✅ Добавляем отправку кода верификации
+    sendVerificationCode: async (email: string) => {
+        try {
+            const response = await api.post('/auth/send-code', { email });
+            return response.data;
+        } catch (error: any) {
+            console.error('Send verification code error:', error);
+            return {
+                success: false,
+                message: error.response?.data?.message || 'Failed to send verification code'
+            };
+        }
+    },
+
+    verifyCode: async (email: string, code: string) => {
+        try {
+            const response = await api.post('/auth/verify-code', { email, code });
+            console.log('✅ Verify code response:', response.data);
+            return response.data; // Теперь возвращает { success, token, user }
+        } catch (error: any) {
+            console.error('❌ Verify code error:', error.response?.data);
+            return {
+                success: false,
+                message: error.response?.data?.message || 'Failed to verify code'
+            };
+        }
+    }
 };

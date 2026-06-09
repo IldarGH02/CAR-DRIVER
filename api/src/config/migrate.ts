@@ -218,12 +218,37 @@ const migrations: Migration[] = [
             if (!columns.includes('role')) {
                 console.log('  → Adding role column to users table...');
                 await run("ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'user'");
-                console.log('  → Setting admin role for specific user...');
-                await run("UPDATE users SET role = 'admin' WHERE email = 'kooooooffe@gmail.com'");
-                console.log('  ✅ Role column added successfully');
-            } else {
-                console.log('  → Role column already exists, skipping');
             }
+
+            // Проверяем и создаем/обновляем администратора
+            console.log('  → Setting up admin user...');
+            const adminEmail = 'kooooooffe@gmail.com';
+            const adminPassword = 'az27AL96darikBL';
+
+            // Импортируем bcrypt (может понадобиться в начале файла)
+            // import bcrypt from 'bcryptjs';
+
+            // Проверяем существование пользователя
+            const existingUser = await get('SELECT id, role FROM users WHERE email = ?', [adminEmail]);
+
+            if (existingUser) {
+                // Если пользователь существует, обновляем роль до admin
+                await run('UPDATE users SET role = "admin" WHERE email = ?', [adminEmail]);
+                console.log('  ✅ User promoted to admin:', adminEmail);
+            } else {
+                // Создаем нового пользователя-администратора
+                const bcrypt = await import('bcryptjs');
+                const hashedPassword = await bcrypt.default.hash(adminPassword, 10);
+
+                await run(
+                    `INSERT INTO users (email, password, name, role, created_at) 
+                 VALUES (?, ?, 'Administrator', 'admin', datetime('now'))`,
+                    [adminEmail, hashedPassword]
+                );
+                console.log('  ✅ Admin user created:', adminEmail);
+            }
+
+            console.log('  ✅ Admin setup completed');
         }
     }
 ];

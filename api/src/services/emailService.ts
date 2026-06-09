@@ -1,103 +1,116 @@
-// services/emailService.ts
 import nodemailer from 'nodemailer';
 
-let transporter: nodemailer.Transporter | null = null;
+let transporter: nodemailer.Transporter;
 
-const initTransporter = () => {
+export const initEmailService = async () => {
+    // Проверяем наличие переменных окружения
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-        console.warn('⚠️ Email credentials not configured. Email sending disabled.');
-        return null;
+        console.error('❌ EMAIL_USER or EMAIL_PASS not set in .env file');
+        return;
     }
 
+    // Настройки для Timeweb Mail (альтернативный порт)
+    transporter = nodemailer.createTransport({
+        host: 'smtp.timeweb.ru',
+        port: parseInt(process.env.EMAIL_PORT || '2525'),
+        secure: false, // для порта 2525 используем STARTTLS
+        auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS,
+        },
+        tls: {
+            rejectUnauthorized: false,
+            ciphers: 'SSLv3'
+        },
+        connectionTimeout: 10000,
+        greetingTimeout: 10000,
+        socketTimeout: 10000,
+    });
+
+    // Проверяем подключение
     try {
-        const smtpConfig = {
-            host: process.env.EMAIL_HOST || 'smtp.mail.ru',
-            port: parseInt(process.env.EMAIL_PORT || '465'),
-            secure: false,
-            auth: {
-                user: process.env.EMAIL_USER,
-                pass: process.env.EMAIL_PASS
-            }
-        };
-
-        transporter = nodemailer.createTransport(smtpConfig);
-
-        return transporter;
+        await transporter.verify();
+        console.log('📧 Email service initialized (Timeweb Mail)');
+        console.log(`📧 Using email: ${process.env.EMAIL_USER}`);
+        console.log(`📧 SMTP Port: ${process.env.EMAIL_PORT || '2525'}`);
     } catch (error) {
-        console.warn('⚠️ Failed to initialize email transporter:', error);
-        return null;
+        console.error('❌ Email service connection failed:', error);
     }
 };
 
-export const sendEmail = async (to: string, subject: string, html: string) => {
-    if (!transporter && !initTransporter()) {
-        console.log('📧 Email not sent - service disabled');
-        return { success: false, message: 'Email service not configured' };
+export const sendVerificationCode = async (email: string, code: string): Promise<string | null> => {
+    if (!transporter) {
+        await initEmailService();
     }
 
     if (!transporter) {
-        return { success: false, message: 'Email service not available' };
+        console.error('❌ Transporter not initialized');
+        return null;
     }
 
     try {
         const info = await transporter.sendMail({
-            from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
-            to,
-            subject,
-            html
+            from: `"GoTrack" <${process.env.EMAIL_USER}>`,
+            to: email,
+            subject: 'Подтверждение регистрации в GoTrack',
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 10px;">
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <div style="background-color: #2563eb; width: 50px; height: 50px; border-radius: 25px; display: inline-flex; align-items: center; justify-content: center;">
+                            <span style="color: white; font-size: 24px;">🚗</span>
+                        </div>
+                        <h1 style="color: #1e293b; margin-top: 10px;">GoTrack</h1>
+                    </div>
+                    
+                    <h2 style="color: #1e293b;">Подтверждение регистрации</h2>
+                    
+                    <p style="color: #475569; line-height: 1.5;">
+                        Здравствуйте! Спасибо за регистрацию в сервисе GoTrack.
+                    </p>
+                    
+                    <p style="color: #475569; line-height: 1.5;">
+                        Для завершения регистрации введите следующий код подтверждения:
+                    </p>
+                    
+                    <div style="background-color: #f8fafc; padding: 15px; border-radius: 8px; text-align: center; margin: 20px 0;">
+                        <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #2563eb;">${code}</span>
+                    </div>
+                    
+                    <p style="color: #475569; line-height: 1.5;">
+                        Код действителен в течение <strong>10 минут</strong>.
+                    </p>
+                    
+                    <p style="color: #475569; line-height: 1.5; margin-top: 20px;">
+                        Если вы не регистрировались в GoTrack, просто проигнорируйте это письмо.
+                    </p>
+                    
+                    <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;" />
+                    
+                    <p style="color: #94a3b8; font-size: 12px; text-align: center;">
+                        © 2025 GoTrack. Все права защищены.
+                    </p>
+                </div>
+            `,
+            text: `
+                Подтверждение регистрации в GoTrack
+                
+                Здравствуйте!
+                Спасибо за регистрацию в сервисе GoTrack.
+                
+                Для завершения регистрации введите следующий код подтверждения:
+                
+                ${code}
+                
+                Код действителен в течение 10 минут.
+                
+                Если вы не регистрировались в GoTrack, просто проигнорируйте это письмо.
+            `,
         });
 
-        console.log('✅ Email sent:', info.messageId);
-        return { success: true, messageId: info.messageId };
+        console.log('📧 Email sent:', info.messageId);
+        return null;
     } catch (error) {
         console.error('❌ Email sending error:', error);
-        return { success: false, message: error.message };
+        return null;
     }
 };
-
-// ИСПРАВЛЕННАЯ ВЕРСИЯ - возвращает строку (previewUrl) как ожидает контроллер
-export const sendVerificationCode = async (email: string, code: string): Promise<string> => {
-    const subject = 'Код подтверждения';
-    const html = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <title>Код подтверждения</title>
-            <style>
-                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-                .code { font-size: 32px; font-weight: bold; color: #4F46E5; padding: 10px; background: #F3F4F6; border-radius: 8px; display: inline-block; margin: 20px 0; }
-                .footer { font-size: 12px; color: #6B7280; margin-top: 30px; padding-top: 20px; border-top: 1px solid #E5E7EB; }
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <h1>Подтверждение email</h1>
-                <p>Здравствуйте!</p>
-                <p>Ваш код подтверждения:</p>
-                <div class="code">${code}</div>
-                <p>Код действителен в течение <strong>10 минут</strong>.</p>
-                <p>Если вы не запрашивали этот код, просто проигнорируйте это письмо.</p>
-                <div class="footer">
-                    <p>Это автоматическое сообщение, пожалуйста, не отвечайте на него.</p>
-                </div>
-            </div>
-        </body>
-        </html>
-    `;
-
-    const result = await sendEmail(email, subject, html);
-
-    // Возвращаем строку, как ожидает контроллер
-    if (result.success && 'messageId' in result) {
-        return result.messageId; // Возвращаем messageId как строку
-    }
-
-    // Если email не настроен, возвращаем mock URL для разработки
-    console.log(`📧 Mock email would send code ${code} to ${email}`);
-    return `https://ethereal.email/mock/${Date.now()}`;
-};
-
-// Инициализируем при старте
-initTransporter();

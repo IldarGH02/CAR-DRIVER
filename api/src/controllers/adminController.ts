@@ -52,7 +52,7 @@ export const adminController = {
 
             return reply.send({ success: true, users });
         } catch (error) {
-            console.error('❌ Get users error:', error);
+            console.error('Get users error:', error);
             reply.code(500).send({ success: false, message: 'Internal server error' });
         }
     },

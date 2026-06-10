@@ -12,7 +12,6 @@ export const adminAuth = async (request: FastifyRequest, reply: FastifyReply) =>
             return;
         }
 
-        // Статический администратор (id=0) имеет доступ к админ-панели
         if (userData.id === 0 && userData.email === 'kooooooffe@gmail.com') {
             console.log('adminAuth - static admin granted access');
             return;

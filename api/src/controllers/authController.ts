@@ -75,12 +75,12 @@ export const authController = {
         }
 
         try {
+            // Проверка статического админа
             if (isAdminUser(email, password)) {
                 const adminUser = getAdminUser();
                 const token = await reply.jwtSign({
                     id: adminUser.id,
-                    email: adminUser.email,
-                    isStatic: true
+                    email: adminUser.email
                 });
 
                 return reply.send({
@@ -131,7 +131,7 @@ export const authController = {
 
     getMe: async (request: FastifyRequest, reply: FastifyReply) => {
         try {
-            const userData = request.user as { id: number; email: string; isStatic?: boolean };
+            const userData = request.user as { id: number; email: string };
 
             if (!userData || !userData.id) {
                 return reply.code(401).send({
@@ -140,8 +140,8 @@ export const authController = {
                 });
             }
 
-            // 👇 ПРОВЕРКА СТАТИЧЕСКОГО АДМИНА
-            if (userData.isStatic || userData.email === adminConfig.email) {
+            // Проверка статического админа
+            if (userData.email === adminConfig.email && userData.id === 0) {
                 return reply.send({
                     success: true,
                     user: getAdminUser()

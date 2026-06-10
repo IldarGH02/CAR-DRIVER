@@ -64,27 +64,45 @@ export const useSettings = () => {
     const handleSaveSettings = async () => {
         setIsLoading(true);
         try {
-            // Сохраняем профиль (только если есть ID и это не статический админ)
+            console.log('Saving profile:', profileData);
+            console.log('Saving settings:', { currency, distanceUnit, fuelUnit, amortizationRate });
+
+            // Сохраняем профиль
             if (user && user.id !== 0) {
-                await api.put('/settings/profile', {
+                const profileResponse = await api.put('/settings/profile', {
                     name: profileData.name,
                     carModel: profileData.carModel,
                     carYear: profileData.carYear,
                     licensePlate: profileData.licensePlate
                 });
 
-                // Обновляем пользователя в сторе
-                updateUser(profileData);
+                if (profileResponse.data.success && profileResponse.data.user) {
+                    updateUser(profileResponse.data.user);
+                    console.log('Profile saved:', profileResponse.data.user);
+                }
             }
 
-            // Сохраняем системные настройки в localStorage
+            // Сохраняем настройки
+            const settingsResponse = await api.put('/settings', {
+                currency,
+                distance_unit: distanceUnit,
+                fuel_unit: fuelUnit,
+                amortization_rate: parseFloat(amortizationRate),
+                notifications: notifications ? 1 : 0,
+                auto_save: autoSave ? 1 : 0
+            });
+
+            if (settingsResponse.data.success) {
+                console.log('Settings saved:', settingsResponse.data.settings);
+            }
+
             localStorage.setItem('notifications', String(notifications));
             localStorage.setItem('autoSave', String(autoSave));
 
             toast.success('Настройки сохранены');
-        } catch (error) {
-            console.error('Save error:', error);
-            toast.error('Ошибка сохранения');
+        } catch (error: any) {
+            console.error('Save error:', error.response?.data || error);
+            toast.error(error.response?.data?.message || 'Ошибка сохранения');
         } finally {
             setIsLoading(false);
         }

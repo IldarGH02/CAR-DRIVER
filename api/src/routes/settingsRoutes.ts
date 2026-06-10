@@ -3,12 +3,9 @@ import { authenticate } from '../middleware/auth';
 import { settingsController } from '../controllers/settingsController';
 
 export default async function settingsRoutes(fastify: FastifyInstance) {
-    // Получение настроек
-    fastify.get('/', { preHandler: authenticate }, settingsController.getSettings);
+    fastify.addHook('preHandler', authenticate);
 
-    // Обновление настроек
-    fastify.put('/', { preHandler: authenticate }, settingsController.updateSettings);
-
-    // Обновление профиля
-    fastify.put('/profile', { preHandler: authenticate }, settingsController.updateProfile);
+    fastify.get('/', settingsController.getSettings);
+    fastify.put('/', settingsController.updateSettings);
+    fastify.put('/profile', settingsController.updateProfile);
 }

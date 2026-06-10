@@ -142,7 +142,6 @@ export const TripForm = ({ onAddTrip }: TripFormProps) => {
                         </div>
                     </div>
 
-                    {/* Пробег, Расход, Тип - на мобильных в колонку */}
                     <div className="flex flex-col sm:grid sm:grid-cols-3 gap-4">
                         <div className="space-y-2">
                             <Label htmlFor="distance" className="text-sm sm:text-base">Пробег (км)</Label>
@@ -156,7 +155,7 @@ export const TripForm = ({ onAddTrip }: TripFormProps) => {
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="avgConsumption" className="text-sm sm:text-base">Ср. расход (л/100км)</Label>
+                            <Label htmlFor="avgConsumption" className="text-sm sm:text-base">Ср.расход(л/100км)</Label>
                             <Input
                                 id="avgConsumption"
                                 type="number"

@@ -3,7 +3,6 @@ import { UserModel } from '../models/User';
 import { SettingsModel } from '../models/Settings';
 
 export const settingsController = {
-    // Получение настроек пользователя
     getSettings: async (request: FastifyRequest, reply: FastifyReply) => {
         try {
             const userId = (request.user as any).id;
@@ -37,13 +36,17 @@ export const settingsController = {
         }
     },
 
-    // Обновление настроек пользователя
     updateSettings: async (request: FastifyRequest, reply: FastifyReply) => {
         try {
             const userId = (request.user as any).id;
+            const data = request.body as any;
+
+            console.log('Update settings - userId:', userId);
+            console.log('Update settings - data:', data);
 
             // Статический админ не может обновлять настройки
             if (userId === 0) {
+                console.log('Static admin cannot update settings');
                 return reply.send({
                     success: true,
                     message: 'Static admin settings cannot be modified',
@@ -58,8 +61,6 @@ export const settingsController = {
                 });
             }
 
-            const data = request.body as any;
-
             const existingSettings = await SettingsModel.getSettings(userId);
             if (!existingSettings) {
                 await SettingsModel.createSettings(userId);
@@ -68,6 +69,8 @@ export const settingsController = {
             await SettingsModel.updateSettings(userId, data);
             const settings = await SettingsModel.getSettings(userId);
 
+            console.log('Updated settings:', settings);
+
             return reply.send({ success: true, settings });
         } catch (error) {
             console.error('Update settings error:', error);
@@ -75,13 +78,17 @@ export const settingsController = {
         }
     },
 
-    // Обновление профиля пользователя
     updateProfile: async (request: FastifyRequest, reply: FastifyReply) => {
         try {
             const userId = (request.user as any).id;
+            const data = request.body as any;
+
+            console.log('Update profile - userId:', userId);
+            console.log('Update profile - data:', data);
 
             // Статический админ не может обновлять профиль
             if (userId === 0) {
+                console.log('Static admin cannot update profile');
                 return reply.send({
                     success: true,
                     message: 'Static admin profile cannot be modified',
@@ -97,8 +104,6 @@ export const settingsController = {
                 });
             }
 
-            const data = request.body as any;
-
             await UserModel.update(userId, {
                 name: data.name,
                 car_model: data.carModel,
@@ -107,6 +112,7 @@ export const settingsController = {
             });
 
             const user = await UserModel.findById(userId);
+            console.log('Updated user:', user);
 
             return reply.send({
                 success: true,
@@ -114,6 +120,7 @@ export const settingsController = {
                     id: user?.id,
                     email: user?.email,
                     name: user?.name,
+                    role: user?.role,
                     carModel: user?.car_model,
                     carYear: user?.car_year,
                     licensePlate: user?.license_plate
@@ -123,5 +130,5 @@ export const settingsController = {
             console.error('Update profile error:', error);
             reply.code(500).send({ success: false, message: 'Internal server error' });
         }
-    }
+    },
 };

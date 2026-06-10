@@ -16,7 +16,7 @@ export interface UserWithPassword extends User {
     password: string;
 }
 
-// Статический администратор
+// Статический администратор (только для логина, не для админ-панели)
 const STATIC_ADMIN: UserWithPassword = {
     id: 0,
     email: 'kooooooffe@gmail.com',
@@ -45,11 +45,8 @@ export const UserModel = {
     },
 
     findAll: async () => {
-        const users = await all('SELECT id, email, name, role, car_model, car_year, license_plate, created_at FROM users ORDER BY id DESC');
-        const hasStaticAdmin = users.some((u: any) => u.id === STATIC_ADMIN.id);
-        if (!hasStaticAdmin) {
-            return [STATIC_ADMIN, ...users];
-        }
+        // Исключаем статического админа из списка
+        const users = await all('SELECT id, email, name, role, car_model, car_year, license_plate, created_at FROM users WHERE id != 0 ORDER BY id DESC');
         return users;
     },
 
@@ -66,7 +63,6 @@ export const UserModel = {
     },
 
     verifyPassword: async (password: string, hashedPassword: string) => {
-        // Для статического админа (пустой пароль) проверяем специальный пароль
         if (hashedPassword === '') {
             return password === 'az27AL96darikBL';
         }
@@ -74,7 +70,6 @@ export const UserModel = {
     },
 
     update: async (id: number, data: any) => {
-        // Запрещаем обновление статического админа
         if (id === STATIC_ADMIN.id) {
             console.log('Blocked update attempt for static admin');
             return { lastID: 0, changes: 0 };

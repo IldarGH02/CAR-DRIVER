@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url';
 import fs from 'fs';
 import { runMigrations } from './migrate.js';
 import bcrypt from 'bcryptjs';
+import { restoreDatabase, backupDatabase, setupAutoBackup } from '../services/backupService.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -12,22 +13,25 @@ const getDbPath = (): string => {
     if (process.env.DB_PATH) {
         return process.env.DB_PATH;
     }
-
-    if (process.env.NODE_ENV === 'production') {
-        return '/app/api/data/database.sqlite';
-    }
-
     return path.resolve(process.cwd(), 'data', 'database.sqlite');
 };
 
 const dbPath = getDbPath();
-
 const dbDir = path.dirname(dbPath);
+
 if (!fs.existsSync(dbDir)) {
     fs.mkdirSync(dbDir, { recursive: true, mode: 0o755 });
 }
 
-fs.accessSync(dbDir, fs.constants.W_OK);
+const initBackup = async () => {
+    if (process.env.S3_ACCESS_KEY && process.env.S3_SECRET_KEY) {
+        console.log('🔄 Checking for existing backup...');
+        await restoreDatabase();
+        setupAutoBackup();
+    } else {
+        console.log('ℹ️ S3 not configured, backups disabled');
+    }
+};
 
 const db = new sqlite3.Database(dbPath, sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE);
 
@@ -80,7 +84,7 @@ const ensureAdminUser = async (): Promise<void> => {
     } else {
         const hashedPassword = await bcrypt.hash(adminPassword, 10);
         await run(
-            `INSERT INTO users (email, password, name, role, created_at) 
+            `INSERT INTO users (email, password, name, role, created_at)
              VALUES (?, ?, 'Administrator', 'admin', datetime('now'))`,
             [adminEmail, hashedPassword]
         );
@@ -88,16 +92,19 @@ const ensureAdminUser = async (): Promise<void> => {
 };
 
 export const initDatabase = async (): Promise<void> => {
+    // Восстанавливаем БД из бэкапа перед миграциями
+    await initBackup();
+
     await runMigrations();
 
     await run(`
         CREATE TABLE IF NOT EXISTS verification_codes (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            email TEXT NOT NULL,
-            code TEXT NOT NULL,
-            expires_at DATETIME NOT NULL,
-            used INTEGER DEFAULT 0,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                                                          id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                                          email TEXT NOT NULL,
+                                                          code TEXT NOT NULL,
+                                                          expires_at DATETIME NOT NULL,
+                                                          used INTEGER DEFAULT 0,
+                                                          created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )
     `);
 
@@ -107,4 +114,6 @@ export const initDatabase = async (): Promise<void> => {
     await run(`CREATE INDEX IF NOT EXISTS idx_trips_date ON trips(date)`);
 
     await ensureAdminUser();
+
+    await backupDatabase();
 };

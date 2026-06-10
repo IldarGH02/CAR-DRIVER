@@ -57,7 +57,7 @@ export const SettingsModel = {
         }
         if (data.amortization_rate !== undefined) {
             fields.push('amortization_rate = ?');
-            values.push(Number(data.amortization_rate)); // ← важно: Number()
+            values.push(Number(data.amortization_rate)); // ← явно преобразуем в число
         }
         if (data.notifications !== undefined) {
             fields.push('notifications = ?');
@@ -72,8 +72,9 @@ export const SettingsModel = {
 
         values.push(userId);
         const query = `UPDATE settings SET ${fields.join(', ')} WHERE user_id = ?`;
-        console.log('Update query:', query);
-        console.log('Update values:', values);
+        console.log('SQL Query:', query);
+        console.log('SQL Values:', values);
+
         await run(query, values);
     },
 

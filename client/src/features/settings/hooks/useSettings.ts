@@ -58,6 +58,9 @@ export const useSettings = () => {
     const handleSaveSettings = async () => {
         setIsLoading(true);
         try {
+            console.log('=== SAVING SETTINGS ===');
+            console.log('amortizationRate before save:', amortizationRate);
+
             if (user && user.id !== 0) {
                 await api.put('/settings/profile', {
                     name: profileData.name,
@@ -68,16 +71,26 @@ export const useSettings = () => {
                 updateUser(profileData);
             }
 
-            await api.put('/settings', {
+            const settingsToSend = {
                 currency,
                 distance_unit: distanceUnit,
                 fuel_unit: fuelUnit,
-                amortization_rate: Number(amortizationRate),
+                amortization_rate: Number(amortizationRate), // ← преобразуем в число
                 notifications: notifications ? 1 : 0,
                 auto_save: autoSave ? 1 : 0
-            });
+            };
 
-            toast.success('Настройки сохранены');
+            console.log('Settings to send:', settingsToSend);
+
+            const response = await api.put('/settings', settingsToSend);
+            console.log('Save response:', response.data);
+
+            if (response.data.success) {
+                // Обновляем локальное состояние из ответа
+                const savedSettings = response.data.settings;
+                setAmortizationRate(String(savedSettings.amortization_rate || '2.68'));
+                toast.success('Настройки сохранены');
+            }
         } catch (error: any) {
             console.error('Save error:', error);
             toast.error(error.response?.data?.message || 'Ошибка сохранения');

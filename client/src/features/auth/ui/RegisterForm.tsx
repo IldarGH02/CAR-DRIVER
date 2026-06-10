@@ -8,7 +8,6 @@ import { Label } from '@shared/ui/label';
 import { toast } from 'sonner';
 import { authApi } from '../api/authApi.ts';
 import { VerificationForm } from '../components';
-import {useNavigate} from "react-router-dom";
 
 const registerSchema = z.object({
     name: z.string().min(2, 'Имя должно содержать минимум 2 символа'),
@@ -23,12 +22,10 @@ const registerSchema = z.object({
 type RegisterFormData = z.infer<typeof registerSchema>;
 
 interface RegisterFormProps {
-    onSuccess: (email: string) => void;
     onSwitchToLogin: () => void;
 }
 
-export const RegisterForm = ({ onSuccess, onSwitchToLogin }: RegisterFormProps) => {
-    const navigate = useNavigate();
+export const RegisterForm = ({ onSwitchToLogin }: RegisterFormProps) => {
     const [isLoading, setIsLoading] = useState(false);
     const [showVerification, setShowVerification] = useState(false);
     const [registeredEmail, setRegisteredEmail] = useState('');
@@ -54,7 +51,7 @@ export const RegisterForm = ({ onSuccess, onSwitchToLogin }: RegisterFormProps) 
                 return;
             }
 
-            // 3. Показываем форму верификации
+            // Показываем форму верификации
             setRegisteredEmail(data.email);
             setShowVerification(true);
 
@@ -68,7 +65,9 @@ export const RegisterForm = ({ onSuccess, onSwitchToLogin }: RegisterFormProps) 
                 });
             }
 
-            onSuccess(data.email);
+            // ❌ УДАЛИТЕ ЭТУ СТРОКУ - она вызывает редирект
+            // onSuccess(data.email);
+
         } catch (error: any) {
             console.error('Registration error:', error);
             toast.error(error.response?.data?.message || 'Ошибка регистрации');
@@ -80,9 +79,8 @@ export const RegisterForm = ({ onSuccess, onSwitchToLogin }: RegisterFormProps) 
     const handleVerificationSuccess = () => {
         console.log('🎉 Verification and login success!');
         toast.success('Добро пожаловать!');
-
-        onSuccess(registeredEmail);
-        onSwitchToLogin();
+        // Не вызывайте onSwitchToLogin, так как пользователь уже авторизован
+        // onSwitchToLogin();
     };
 
     if (showVerification) {
@@ -155,6 +153,18 @@ export const RegisterForm = ({ onSuccess, onSwitchToLogin }: RegisterFormProps) 
             <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? 'Регистрация...' : 'Зарегистрироваться'}
             </Button>
+
+            <div className="text-center text-sm">
+                <span className="text-muted-foreground">Уже есть аккаунт? </span>
+                <button
+                    type="button"
+                    onClick={onSwitchToLogin}
+                    className="text-primary hover:underline"
+                    disabled={isLoading}
+                >
+                    Войти
+                </button>
+            </div>
         </form>
     );
 };

@@ -26,26 +26,32 @@ export const settingsController = {
             const userId = (request.user as any).id;
             const data = request.body as any;
 
-            console.log('Update settings - userId:', userId);
-            console.log('Update settings - amortization_rate received:', data.amortization_rate);
+            console.log('=== UPDATE SETTINGS ===');
+            console.log('userId:', userId);
+            console.log('Received data:', data);
+            console.log('amortization_rate received:', data.amortization_rate);
 
+            // Проверяем, существуют ли настройки
             let settings = await SettingsModel.getSettings(userId);
             if (!settings) {
+                console.log('No settings found, creating...');
                 await SettingsModel.createSettings(userId);
             }
 
-            // Убедитесь, что значение передается правильно
+            // Обновляем настройки
             await SettingsModel.updateSettings(userId, {
                 currency: data.currency,
                 distance_unit: data.distance_unit,
                 fuel_unit: data.fuel_unit,
-                amortization_rate: data.amortization_rate, // ← передаем как есть
+                amortization_rate: Number(data.amortization_rate), // ← преобразуем в число
                 notifications: data.notifications,
                 auto_save: data.auto_save
             });
 
+            // Получаем обновленные настройки
             const updatedSettings = await SettingsModel.getSettings(userId);
-            console.log('Updated settings amortization_rate:', updatedSettings?.amortization_rate);
+            console.log('Updated settings:', updatedSettings);
+            console.log('amortization_rate after update:', updatedSettings?.amortization_rate);
 
             return reply.send({ success: true, settings: updatedSettings });
         } catch (error) {

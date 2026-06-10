@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom'; // 👈 ДОБАВЬТЕ
 import { Button } from '@shared/ui/button';
 import { toast } from 'sonner';
 import { authApi } from '../api/authApi';
@@ -11,6 +12,7 @@ interface VerificationFormProps {
 }
 
 export const VerificationForm = ({ email, onVerified, onBack }: VerificationFormProps) => {
+    const navigate = useNavigate();
     const { setUser } = useUserStore();
     const [code, setCode] = useState(['', '', '', '', '', '']);
     const [isLoading, setIsLoading] = useState(false);
@@ -94,7 +96,6 @@ export const VerificationForm = ({ email, onVerified, onBack }: VerificationForm
             nextInput?.focus();
         }
 
-        // Автоматическая проверка при заполнении всех полей
         if (newCode.every(digit => digit !== '') && !isLoading) {
             handleVerify(newCode.join(''));
         }
@@ -119,21 +120,19 @@ export const VerificationForm = ({ email, onVerified, onBack }: VerificationForm
         setIsLoading(true);
         setError(null);
 
-        // Верифицируем код и получаем токен
         const result = await authApi.verifyCode(email, finalCode);
 
         if (result.success && result.token) {
-            // Сохраняем токен в localStorage
             localStorage.setItem('token', result.token);
             if (result.user) {
                 localStorage.setItem('user-storage', JSON.stringify(result.user));
-                // 👇 ОБНОВЛЯЕМ СТОР
                 setUser(result.user);
             }
 
             toast.success('Код подтвержден! Выполняется вход...');
 
-            // Вызываем onVerified для редиректа
+            // 👈 РЕДИРЕКТ НА ГЛАВНУЮ
+            navigate('/');
             onVerified();
         } else {
             const errorMessage = result.message || 'Неверный код подтверждения';

@@ -1,17 +1,16 @@
 import { useState, useEffect } from 'react';
 import { useUserStoreData } from '@entities/user/model/userStore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@shared/ui/card';
-import { Button } from '@shared/ui/button';
-import { Input } from '@shared/ui/input';
-import { Label } from '@shared/ui/label';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@shared/ui/table';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@shared/ui/dialog';
-import { Badge } from '@shared/ui/badge';
-import { Separator } from '@shared/ui/separator';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@shared/ui/select';
-import { UserPlus, Trash2, Edit, Eye, Users, Car, FileText, Shield } from 'lucide-react';
+import { Users } from 'lucide-react';
 import { api } from '@shared/api/axiosInstance';
 import { toast } from 'sonner';
+
+import { AdminHeader } from '@features/admin/components';
+import { StatisticsCards } from '@features/admin/components/StatisticsCards';
+import { UsersTable } from '@features/admin/components/UsersTable';
+import { UserAddDialog } from '@features/admin/components/UserAddDialog';
+import { UserEditDialog } from '@features/admin/components/UserEditDialog';
+import { UserTripsDialog } from '@features/admin/components/UserTripsDialog';
 
 interface User {
     id: number;
@@ -36,17 +35,34 @@ interface Trip {
     expenseLine?: string;
 }
 
+interface NewUser {
+    email: string;
+    password: string;
+    name: string;
+    role: string;
+}
+
+interface EditUser {
+    name: string;
+    role: string;
+    carModel: string;
+    carYear: string;
+    licensePlate: string;
+}
+
 export function Admin() {
     const { user: currentUser } = useUserStoreData();
     const [users, setUsers] = useState<User[]>([]);
+    const [stats, setStats] = useState({ totalUsers: 0, totalAdmins: 0, totalRegularUsers: 0 });
+    const [isLoading, setIsLoading] = useState(false);
+
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
     const [userTrips, setUserTrips] = useState<Trip[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
-    const [isAddUserOpen, setIsAddUserOpen] = useState(false);
-    const [isEditUserOpen, setIsEditUserOpen] = useState(false);
-    const [isViewTripsOpen, setIsViewTripsOpen] = useState(false);
-    const [newUser, setNewUser] = useState({ email: '', password: '', name: '', role: 'user' });
-    const [editUser, setEditUser] = useState({ name: '', role: '', carModel: '', carYear: '', licensePlate: '' });
+    const [isTripsDialogOpen, setIsTripsDialogOpen] = useState(false);
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+    const [tripsDateFrom, setTripsDateFrom] = useState('');
+    const [tripsDateTo, setTripsDateTo] = useState('');
+    const [isTripsLoading, setIsTripsLoading] = useState(false);
 
     useEffect(() => {
         if (currentUser?.role === 'admin') {
@@ -58,8 +74,18 @@ export function Admin() {
         setIsLoading(true);
         try {
             const response = await api.get('/admin/users');
-            setUsers(response.data.users);
+            if (response.data.success) {
+                setUsers(response.data.users);
+                const admins = response.data.users.filter((u: User) => u.role === 'admin').length;
+                const regularUsers = response.data.users.filter((u: User) => u.role !== 'admin').length;
+                setStats({
+                    totalUsers: response.data.users.length,
+                    totalAdmins: admins,
+                    totalRegularUsers: regularUsers
+                });
+            }
         } catch (error) {
+            console.error('Failed to fetch users:', error);
             toast.error('Ошибка загрузки пользователей');
         } finally {
             setIsLoading(false);
@@ -67,82 +93,147 @@ export function Admin() {
     };
 
     const fetchUserTrips = async (userId: number) => {
+        setIsTripsLoading(true);
         try {
-            const response = await api.get(`/admin/users/${userId}/trips`);
-            setUserTrips(response.data.trips);
+            const params: any = {};
+            if (tripsDateFrom) params.dateFrom = tripsDateFrom;
+            if (tripsDateTo) params.dateTo = tripsDateTo;
+
+            const response = await api.get(`/admin/users/${userId}/trips`, { params });
+            if (response.data.success) {
+                setUserTrips(response.data.trips);
+            }
         } catch (error) {
+            console.error('Failed to fetch user trips:', error);
             toast.error('Ошибка загрузки поездок');
+        } finally {
+            setIsTripsLoading(false);
         }
     };
 
-    const handleAddUser = async () => {
-        if (!newUser.email || !newUser.password || !newUser.name) {
-            toast.error('Заполните все поля');
-            return;
-        }
+    const handleViewTrips = (user: User) => {
+        setSelectedUser(user);
+        setTripsDateFrom('');
+        setTripsDateTo('');
+        setIsTripsDialogOpen(true);
+        fetchUserTrips(user.id);
+    };
+
+    const handleAddUser = async (newUser: NewUser) => {
         try {
             const response = await api.post('/admin/users', newUser);
             if (response.data.success) {
                 toast.success('Пользователь добавлен');
-                setIsAddUserOpen(false);
-                setNewUser({ email: '', password: '', name: '', role: 'user' });
-                fetchUsers();
+                await fetchUsers();
+                return true;
             }
+            return false;
         } catch (error: any) {
             toast.error(error.response?.data?.message || 'Ошибка добавления пользователя');
+            return false;
         }
     };
 
-    const handleUpdateUser = async (userId: number) => {
+    const handleEditUser = (user: User) => {
+        setSelectedUser(user);
+        setIsEditDialogOpen(true);
+    };
+
+    const handleUpdateUser = async (userId: number, updatedUser: EditUser) => {
         try {
-            const response = await api.put(`/admin/users/${userId}`, editUser);
+            const response = await api.put(`/admin/users/${userId}`, updatedUser);
             if (response.data.success) {
                 toast.success('Пользователь обновлён');
-                setIsEditUserOpen(false);
-                fetchUsers();
+                await fetchUsers();
+                return true;
             }
+            return false;
         } catch (error) {
+            console.error('Failed to update user:', error);
             toast.error('Ошибка обновления пользователя');
+            return false;
         }
     };
 
     const handleDeleteUser = async (userId: number) => {
-        if (confirm('Вы уверены, что хотите удалить этого пользователя?')) {
-            try {
-                await api.delete(`/admin/users/${userId}`);
+        if (!confirm('Вы уверены, что хотите удалить этого пользователя? Все его поездки также будут удалены.')) {
+            return;
+        }
+        try {
+            const response = await api.delete(`/admin/users/${userId}`);
+            if (response.data.success) {
                 toast.success('Пользователь удалён');
-                fetchUsers();
-            } catch (error) {
-                toast.error('Ошибка удаления пользователя');
+                await fetchUsers();
             }
+        } catch (error) {
+            console.error('Failed to delete user:', error);
+            toast.error('Ошибка удаления пользователя');
         }
     };
 
-    const openUserTrips = async (user: User) => {
-        setSelectedUser(user);
-        await fetchUserTrips(user.id);
-        setIsViewTripsOpen(true);
+    const handleAddTrip = async (userId: number, trip: any) => {
+        try {
+            const response = await api.post(`/admin/users/${userId}/trips`, trip);
+            if (response.data.success) {
+                toast.success('Поездка добавлена');
+                await fetchUserTrips(userId);
+                return true;
+            }
+            return false;
+        } catch (error) {
+            console.error('Failed to add trip:', error);
+            toast.error('Ошибка добавления поездки');
+            return false;
+        }
     };
 
-    const openEditUser = (user: User) => {
-        setEditUser({
-            name: user.name,
-            role: user.role,
-            carModel: user.carModel || '',
-            carYear: user.carYear || '',
-            licensePlate: user.licensePlate || '',
-        });
-        setSelectedUser(user);
-        setIsEditUserOpen(true);
+    const handleDeleteTrip = async (userId: number, tripId: number) => {
+        try {
+            const response = await api.delete(`/admin/users/${userId}/trips/${tripId}`);
+            if (response.data.success) {
+                toast.success('Поездка удалена');
+                await fetchUserTrips(userId);
+                return true;
+            }
+            return false;
+        } catch (error) {
+            console.error('Failed to delete trip:', error);
+            toast.error('Ошибка удаления поездки');
+            return false;
+        }
     };
 
-    // Проверка прав администратора
+    const handleApplyFilter = () => {
+        if (selectedUser) {
+            fetchUserTrips(selectedUser.id);
+        }
+    };
+
+    const handleGenerateReport = async (user: User) => {
+        try {
+            const response = await api.get(`/admin/users/${user.id}/report`);
+            if (response.data.success) {
+                const blob = new Blob([JSON.stringify(response.data.report, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `report_${user.name}_${new Date().toISOString().split('T')[0]}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+                toast.success('Отчёт сгенерирован');
+            }
+        } catch (error) {
+            console.error('Failed to generate report:', error);
+            toast.error('Ошибка генерации отчёта');
+        }
+    };
+
     if (currentUser?.role !== 'admin') {
         return (
-            <div className="flex-1 flex items-center justify-center bg-background">
-                <Card className="max-w-md">
+            <div className="flex-1 flex items-center justify-center bg-background p-4">
+                <Card className="max-w-md w-full">
                     <CardHeader>
-                        <CardTitle>Доступ запрещён</CardTitle>
+                        <CardTitle className="text-xl sm:text-2xl">Доступ запрещён</CardTitle>
                         <CardDescription>
                             У вас нет прав администратора для доступа к этой странице.
                         </CardDescription>
@@ -154,200 +245,72 @@ export function Admin() {
 
     return (
         <div className="flex-1 overflow-auto bg-background">
-            <div className="p-8">
-                <div className="mb-8 flex justify-between items-center">
-                    <div>
-                        <h2 className="text-3xl font-semibold mb-2">Админ-панель</h2>
-                        <p className="text-muted-foreground">Управление пользователями и поездками</p>
-                    </div>
-                    <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
-                        <DialogTrigger asChild>
-                            <Button className="gap-2">
-                                <UserPlus className="w-4 h-4" />
-                                Добавить пользователя
-                            </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                            <DialogHeader>
-                                <DialogTitle>Добавление пользователя</DialogTitle>
-                            </DialogHeader>
-                            <div className="space-y-4">
-                                <div className="space-y-2">
-                                    <Label>Имя</Label>
-                                    <Input value={newUser.name} onChange={(e) => setNewUser({ ...newUser, name: e.target.value })} />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>Email</Label>
-                                    <Input type="email" value={newUser.email} onChange={(e) => setNewUser({ ...newUser, email: e.target.value })} />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>Пароль</Label>
-                                    <Input type="password" value={newUser.password} onChange={(e) => setNewUser({ ...newUser, password: e.target.value })} />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>Роль</Label>
-                                    <Select value={newUser.role} onValueChange={(v) => setNewUser({ ...newUser, role: v })}>
-                                        <SelectTrigger>
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="user">Пользователь</SelectItem>
-                                            <SelectItem value="admin">Администратор</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <Button onClick={handleAddUser} className="w-full">Создать</Button>
-                            </div>
-                        </DialogContent>
-                    </Dialog>
+            <div className="p-3 sm:p-4 md:p-6 lg:p-8">
+                <AdminHeader
+                    title="Управление пользователями"
+                    description="Просмотр, добавление и управление пользователями системы"
+                />
+
+                <StatisticsCards
+                    totalUsers={stats.totalUsers}
+                    totalAdmins={stats.totalAdmins}
+                    totalRegularUsers={stats.totalRegularUsers}
+                />
+
+                <div className="flex justify-end mb-4 sm:mb-6">
+                    <UserAddDialog onAddUser={handleAddUser} />
                 </div>
 
                 <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
+                    <CardHeader className="p-4 sm:p-6">
+                        <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
                             <Users className="w-5 h-5" />
                             Пользователи
                         </CardTitle>
-                        <CardDescription>Все зарегистрированные пользователи системы</CardDescription>
+                        <CardDescription className="text-sm">
+                            Все зарегистрированные пользователи системы
+                        </CardDescription>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="p-4 sm:p-6 pt-0">
                         {isLoading ? (
                             <div className="text-center py-8">Загрузка...</div>
-                        ) : (
-                            <div className="overflow-x-auto">
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>ID</TableHead>
-                                            <TableHead>Имя</TableHead>
-                                            <TableHead>Email</TableHead>
-                                            <TableHead>Роль</TableHead>
-                                            <TableHead>Автомобиль</TableHead>
-                                            <TableHead>Госномер</TableHead>
-                                            <TableHead className="text-right">Действия</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {users.map((user) => (
-                                            <TableRow key={user.id}>
-                                                <TableCell>{user.id}</TableCell>
-                                                <TableCell>{user.name}</TableCell>
-                                                <TableCell>{user.email}</TableCell>
-                                                <TableCell>
-                                                    <Badge className={user.role === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'}>
-                                                        {user.role === 'admin' ? 'Админ' : 'Пользователь'}
-                                                    </Badge>
-                                                </TableCell>
-                                                <TableCell>{user.carModel || '—'}</TableCell>
-                                                <TableCell>{user.licensePlate || '—'}</TableCell>
-                                                <TableCell className="text-right">
-                                                    <div className="flex justify-end gap-2">
-                                                        <Button variant="ghost" size="icon" onClick={() => openUserTrips(user)} title="Поездки">
-                                                            <Car className="w-4 h-4" />
-                                                        </Button>
-                                                        <Button variant="ghost" size="icon" onClick={() => openEditUser(user)} title="Редактировать">
-                                                            <Edit className="w-4 h-4" />
-                                                        </Button>
-                                                        {user.role !== 'admin' && (
-                                                            <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDeleteUser(user.id)} title="Удалить">
-                                                                <Trash2 className="w-4 h-4" />
-                                                            </Button>
-                                                        )}
-                                                    </div>
-                                                </TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
+                        ) : users.length === 0 ? (
+                            <div className="text-center py-8 text-muted-foreground">
+                                Нет пользователей
                             </div>
+                        ) : (
+                            <UsersTable
+                                users={users}
+                                onViewTrips={handleViewTrips}
+                                onEditUser={handleEditUser}
+                                onDeleteUser={handleDeleteUser}
+                                onGenerateReport={handleGenerateReport}
+                            />
                         )}
                     </CardContent>
                 </Card>
 
-                {/* Диалог просмотра поездок */}
-                <Dialog open={isViewTripsOpen} onOpenChange={setIsViewTripsOpen}>
-                    <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-                        <DialogHeader>
-                            <DialogTitle>Поездки пользователя: {selectedUser?.name}</DialogTitle>
-                        </DialogHeader>
-                        <div className="space-y-4">
-                            {userTrips.length === 0 ? (
-                                <p className="text-center text-muted-foreground py-8">Нет поездок</p>
-                            ) : (
-                                <div className="overflow-x-auto">
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow>
-                                                <TableHead>Дата</TableHead>
-                                                <TableHead>Маршрут</TableHead>
-                                                <TableHead>Цель</TableHead>
-                                                <TableHead>Пробег</TableHead>
-                                                <TableHead>Топливо (л)</TableHead>
-                                                <TableHead>Амортизация</TableHead>
-                                                <TableHead>Строка расходов</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {userTrips.map((trip) => (
-                                                <TableRow key={trip.id}>
-                                                    <TableCell>{new Date(trip.date).toLocaleDateString('ru-RU')}</TableCell>
-                                                    <TableCell>{trip.from} → {trip.to}</TableCell>
-                                                    <TableCell>{trip.purpose}</TableCell>
-                                                    <TableCell>{trip.distance} км</TableCell>
-                                                    <TableCell>{(trip.fuelAmount || 0).toFixed(1)} л</TableCell>
-                                                    <TableCell>{trip.amortization} ₽</TableCell>
-                                                    <TableCell>{trip.expenseLine || '—'}</TableCell>
-                                                </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
-                                </div>
-                            )}
-                        </div>
-                    </DialogContent>
-                </Dialog>
+                <UserEditDialog
+                    user={selectedUser}
+                    isOpen={isEditDialogOpen}
+                    onClose={() => setIsEditDialogOpen(false)}
+                    onUpdateUser={handleUpdateUser}
+                />
 
-                {/* Диалог редактирования пользователя */}
-                <Dialog open={isEditUserOpen} onOpenChange={setIsEditUserOpen}>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>Редактирование пользователя</DialogTitle>
-                        </DialogHeader>
-                        <div className="space-y-4">
-                            <div className="space-y-2">
-                                <Label>Имя</Label>
-                                <Input value={editUser.name} onChange={(e) => setEditUser({ ...editUser, name: e.target.value })} />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Роль</Label>
-                                <Select value={editUser.role} onValueChange={(v) => setEditUser({ ...editUser, role: v })}>
-                                    <SelectTrigger>
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="user">Пользователь</SelectItem>
-                                        <SelectItem value="admin">Администратор</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <Separator />
-                            <h4 className="font-medium">Информация об автомобиле</h4>
-                            <div className="space-y-2">
-                                <Label>Модель автомобиля</Label>
-                                <Input value={editUser.carModel} onChange={(e) => setEditUser({ ...editUser, carModel: e.target.value })} />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Год выпуска</Label>
-                                <Input value={editUser.carYear} onChange={(e) => setEditUser({ ...editUser, carYear: e.target.value })} />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Гос. номер</Label>
-                                <Input value={editUser.licensePlate} onChange={(e) => setEditUser({ ...editUser, licensePlate: e.target.value })} />
-                            </div>
-                            <Button onClick={() => selectedUser && handleUpdateUser(selectedUser.id)} className="w-full">Сохранить</Button>
-                        </div>
-                    </DialogContent>
-                </Dialog>
+                <UserTripsDialog
+                    user={selectedUser}
+                    trips={userTrips}
+                    isOpen={isTripsDialogOpen}
+                    isLoading={isTripsLoading}
+                    dateFrom={tripsDateFrom}
+                    dateTo={tripsDateTo}
+                    onClose={() => setIsTripsDialogOpen(false)}
+                    onDateFromChange={setTripsDateFrom}
+                    onDateToChange={setTripsDateTo}
+                    onApplyFilter={handleApplyFilter}
+                    onAddTrip={handleAddTrip}
+                    onDeleteTrip={handleDeleteTrip}
+                />
             </div>
         </div>
     );

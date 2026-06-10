@@ -58,7 +58,7 @@ export const router = createBrowserRouter([
             },
             {
                 path: "privacy",
-                element: <Privacy />, // Политика конфиденциальности обычно публичная
+                element: <Privacy />,
             },
         ],
     },

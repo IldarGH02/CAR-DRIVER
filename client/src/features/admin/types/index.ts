@@ -9,7 +9,7 @@ export interface User {
     createdAt?: string;
 }
 
-export interface Trip {
+interface Trip {
     id: number;
     date: string;
     from: string;
@@ -20,7 +20,7 @@ export interface Trip {
     amortization: number;
     purpose: string;
     expenseLine?: string;
-    status: string;
+    status?: string;
 }
 
 export interface NewUser {

@@ -1,35 +1,50 @@
 import { get, run } from '../config/database';
 
+const DEFAULT_SETTINGS = {
+    currency: 'RUB',
+    distance_unit: 'km',
+    fuel_unit: 'liters',
+    amortization_rate: 2.68,
+    notifications: 1,
+    auto_save: 1
+};
+
 export const SettingsModel = {
     findByUserId: async (userId: number) => {
+        if (userId === 0) {
+            return { user_id: 0, ...DEFAULT_SETTINGS };
+        }
         const row = await get('SELECT * FROM settings WHERE user_id = ?', [userId]);
-        return row;
+        return row || { user_id: userId, ...DEFAULT_SETTINGS };
     },
 
-    // НОВЫЙ МЕТОД: получить настройки (алиас для findByUserId)
     getSettings: async (userId: number) => {
         return SettingsModel.findByUserId(userId);
     },
 
-    // НОВЫЙ МЕТОД: создать настройки по умолчанию
     createSettings: async (userId: number, data?: any) => {
+        if (userId === 0) {
+            return { user_id: 0, ...DEFAULT_SETTINGS, ...data };
+        }
         return run(
             `INSERT INTO settings (user_id, currency, distance_unit, fuel_unit, amortization_rate, notifications, auto_save) 
              VALUES (?, ?, ?, ?, ?, ?, ?)`,
             [
                 userId,
-                data?.currency || 'RUB',
-                data?.distance_unit || 'km',
-                data?.fuel_unit || 'liters',
-                data?.amortization_rate || 2.68,
-                data?.notifications !== undefined ? (data.notifications ? 1 : 0) : 1,
-                data?.auto_save !== undefined ? (data.auto_save ? 1 : 0) : 1
+                data?.currency || DEFAULT_SETTINGS.currency,
+                data?.distance_unit || DEFAULT_SETTINGS.distance_unit,
+                data?.fuel_unit || DEFAULT_SETTINGS.fuel_unit,
+                data?.amortization_rate || DEFAULT_SETTINGS.amortization_rate,
+                data?.notifications !== undefined ? (data.notifications ? 1 : 0) : DEFAULT_SETTINGS.notifications,
+                data?.auto_save !== undefined ? (data.auto_save ? 1 : 0) : DEFAULT_SETTINGS.auto_save
             ]
         );
     },
 
-    // НОВЫЙ МЕТОД: обновить настройки (алиас для update)
     updateSettings: async (userId: number, data: any) => {
+        if (userId === 0) {
+            return { user_id: 0, ...DEFAULT_SETTINGS, ...data };
+        }
         return SettingsModel.update(userId, data);
     },
 

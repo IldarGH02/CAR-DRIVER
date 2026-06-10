@@ -13,7 +13,6 @@ interface TripTableProps {
 }
 
 const getStatusBadge = (status: string, date: string) => {
-    // Определяем статус по дате, если он не установлен или устарел
     const tripDate = new Date(date);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -28,17 +27,17 @@ const getStatusBadge = (status: string, date: string) => {
     const variants: Record<string, { label: string; className: string; icon: any }> = {
         completed: {
             label: "Завершена",
-            className: "bg-green-100 text-green-800",
+            className: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
             icon: CheckCircle
         },
         planned: {
             label: "Запланирована",
-            className: "bg-blue-100 text-blue-800",
+            className: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
             icon: Clock
         },
         cancelled: {
             label: "Отменена",
-            className: "bg-red-100 text-red-800",
+            className: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
             icon: CheckCircle
         },
     };
@@ -49,7 +48,7 @@ const getStatusBadge = (status: string, date: string) => {
     return (
         <Badge className={`${variant.className} flex items-center gap-1 w-fit`}>
             <Icon className="w-3 h-3" />
-            {variant.label}
+            <span className="text-xs sm:text-sm">{variant.label}</span>
         </Badge>
     );
 };
@@ -61,53 +60,54 @@ export const TripTable = ({ trips, isLoading, onDeleteTrip, isMobile }: TripTabl
 
     if (trips.length === 0) {
         return (
-            <div className="text-center py-8 text-muted-foreground">
+            <div className="text-center py-8 text-muted-foreground text-sm sm:text-base">
                 Нет добавленных поездок. Нажмите "Добавить поездку" чтобы создать первую запись.
             </div>
         );
     }
 
     const totalFuelAmount = trips.reduce((sum, trip) => sum + (trip.fuelAmount || 0), 0);
+    const totalDistance = trips.reduce((sum, t) => sum + t.distance, 0);
+    const totalAmortization = trips.reduce((sum, t) => sum + t.amortization, 0);
 
-    // Мобильная версия - карточки
     if (isMobile) {
         return (
-            <div className="space-y-4 p-4">
+            <div className="space-y-3 sm:space-y-4 p-3 sm:p-4">
                 {trips.map((trip) => (
-                    <div key={trip.id} className="border rounded-lg p-4 space-y-3 bg-white">
-                        <div className="flex justify-between items-start">
+                    <div key={trip.id} className="border rounded-lg p-3 sm:p-4 space-y-3 bg-white dark:bg-gray-800">
+                        <div className="flex justify-between items-start gap-2 flex-wrap">
                             <div className="flex items-center gap-2">
-                                <Calendar className="w-4 h-4 text-muted-foreground" />
-                                <span className="font-medium">{formatDate(trip.date)}</span>
+                                <Calendar className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                                <span className="font-medium text-sm sm:text-base">{formatDate(trip.date)}</span>
                             </div>
                             {getStatusBadge(trip.status, trip.date)}
                         </div>
 
                         <div className="flex items-center gap-2">
-                            <MapPin className="w-4 h-4 text-primary" />
-                            <span className="text-sm">{trip.from} → {trip.to}</span>
+                            <MapPin className="w-4 h-4 text-primary flex-shrink-0" />
+                            <span className="text-sm sm:text-base break-words">{trip.from} → {trip.to}</span>
                         </div>
 
-                        <div className="text-sm text-muted-foreground">{trip.purpose}</div>
+                        <div className="text-sm sm:text-base text-muted-foreground break-words">{trip.purpose}</div>
 
-                        <div className="grid grid-cols-2 gap-2 text-sm">
-                            <div>
+                        <div className="grid grid-cols-2 gap-2 text-sm sm:text-base">
+                            <div className="break-words">
                                 <span className="text-muted-foreground">Пробег:</span>
                                 <span className="ml-2 font-medium">{formatDistance(trip.distance)}</span>
                             </div>
-                            <div>
-                <span className="text-muted-foreground flex items-center gap-1">
-                  <Fuel className="w-3 h-3" /> Топливо:
-                </span>
+                            <div className="break-words">
+                                <span className="text-muted-foreground flex items-center gap-1">
+                                    <Fuel className="w-3 h-3 flex-shrink-0" /> Топливо:
+                                </span>
                                 <span className="ml-2 font-medium">{roundToTwo(trip.fuelAmount || 0)} л</span>
                             </div>
-                            <div>
+                            <div className="break-words">
                                 <span className="text-muted-foreground">Амортизация:</span>
                                 <span className="ml-2 font-medium">{formatCurrency(trip.amortization)}</span>
                             </div>
-                            <div>
+                            <div className="break-words">
                                 <span className="text-muted-foreground">Строка:</span>
-                                <span className="ml-2 font-medium text-xs">{(trip as any).expenseLine || "—"}</span>
+                                <span className="ml-2 font-medium text-xs sm:text-sm">{(trip as any).expenseLine || "—"}</span>
                             </div>
                         </div>
 
@@ -119,70 +119,69 @@ export const TripTable = ({ trips, isLoading, onDeleteTrip, isMobile }: TripTabl
                                 onClick={async () => await onDeleteTrip(trip.id)}
                             >
                                 <Trash2 className="w-4 h-4 mr-1" />
-                                Удалить
+                                <span className="text-sm">Удалить</span>
                             </Button>
                         </div>
                     </div>
                 ))}
 
                 <div className="border-t pt-4 mt-4">
-                    <div className="grid grid-cols-2 gap-2 font-bold">
+                    <div className="grid grid-cols-2 gap-2 font-bold text-sm sm:text-base">
                         <div>ИТОГО:</div>
-                        <div>{formatDistance(trips.reduce((sum, t) => sum + t.distance, 0))}</div>
+                        <div className="text-right">{formatDistance(totalDistance)}</div>
                         <div>Всего топлива:</div>
-                        <div>{roundToTwo(totalFuelAmount)} л</div>
+                        <div className="text-right">{roundToTwo(totalFuelAmount)} л</div>
                         <div>Всего амортизация:</div>
-                        <div>{formatCurrency(trips.reduce((sum, t) => sum + t.amortization, 0))}</div>
+                        <div className="text-right">{formatCurrency(totalAmortization)}</div>
                     </div>
                 </div>
             </div>
         );
     }
 
-    // Десктопная версия - таблица
     return (
         <div className="overflow-x-auto">
             <Table>
                 <TableHeader>
                     <TableRow>
-                        <TableHead>Дата</TableHead>
-                        <TableHead>Маршрут</TableHead>
-                        <TableHead>Цель</TableHead>
-                        <TableHead className="text-right">Пробег (км)</TableHead>
-                        <TableHead className="text-right">Топливо (л)</TableHead>
-                        <TableHead className="text-right">Амортизация (₽)</TableHead>
-                        <TableHead>Строка расходов</TableHead>
-                        <TableHead>Статус</TableHead>
-                        <TableHead className="text-right">Действия</TableHead>
+                        <TableHead className="whitespace-nowrap">Дата</TableHead>
+                        <TableHead className="whitespace-nowrap">Маршрут</TableHead>
+                        <TableHead className="whitespace-nowrap">Цель</TableHead>
+                        <TableHead className="text-right whitespace-nowrap">Пробег (км)</TableHead>
+                        <TableHead className="text-right whitespace-nowrap">Топливо (л)</TableHead>
+                        <TableHead className="text-right whitespace-nowrap">Амортизация (₽)</TableHead>
+                        <TableHead className="whitespace-nowrap">Строка расходов</TableHead>
+                        <TableHead className="whitespace-nowrap">Статус</TableHead>
+                        <TableHead className="text-right whitespace-nowrap">Действия</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
                     {trips.map((trip) => (
                         <TableRow key={trip.id}>
-                            <TableCell>
+                            <TableCell className="whitespace-nowrap">
                                 <div className="flex items-center gap-2">
-                                    <Calendar className="w-4 h-4 text-muted-foreground" />
+                                    <Calendar className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                                     {formatDate(trip.date)}
                                 </div>
                             </TableCell>
                             <TableCell>
-                                <div className="flex items-center gap-2">
-                                    <MapPin className="w-4 h-4 text-primary" />
-                                    <span>{trip.from} → {trip.to}</span>
+                                <div className="flex items-center gap-2 min-w-[150px]">
+                                    <MapPin className="w-4 h-4 text-primary flex-shrink-0" />
+                                    <span className="break-words">{trip.from} → {trip.to}</span>
                                 </div>
                             </TableCell>
-                            <TableCell>{trip.purpose}</TableCell>
-                            <TableCell className="text-right">{formatDistance(trip.distance)}</TableCell>
-                            <TableCell className="text-right">
+                            <TableCell className="break-words min-w-[120px]">{trip.purpose}</TableCell>
+                            <TableCell className="text-right whitespace-nowrap">{formatDistance(trip.distance)}</TableCell>
+                            <TableCell className="text-right whitespace-nowrap">
                                 <div className="flex items-center justify-end gap-1">
                                     <Fuel className="w-3 h-3 text-muted-foreground" />
                                     <span>{roundToTwo(trip.fuelAmount || 0)} л</span>
                                 </div>
                             </TableCell>
-                            <TableCell className="text-right">{formatCurrency(trip.amortization)}</TableCell>
-                            <TableCell>{(trip as any).expenseLine || "—"}</TableCell>
-                            <TableCell>{getStatusBadge(trip.status, trip.date)}</TableCell>
-                            <TableCell className="text-right">
+                            <TableCell className="text-right whitespace-nowrap">{formatCurrency(trip.amortization)}</TableCell>
+                            <TableCell className="whitespace-nowrap">{(trip as any).expenseLine || "—"}</TableCell>
+                            <TableCell className="whitespace-nowrap">{getStatusBadge(trip.status, trip.date)}</TableCell>
+                            <TableCell className="text-right whitespace-nowrap">
                                 <Button
                                     variant="ghost"
                                     size="icon"
@@ -200,17 +199,17 @@ export const TripTable = ({ trips, isLoading, onDeleteTrip, isMobile }: TripTabl
                     <TableCell colSpan={3} className="text-right font-bold">
                         ИТОГО:
                     </TableCell>
-                    <TableCell className="text-right font-bold">
-                        {formatDistance(trips.reduce((sum, t) => sum + t.distance, 0))}
+                    <TableCell className="text-right font-bold whitespace-nowrap">
+                        {formatDistance(totalDistance)}
                     </TableCell>
-                    <TableCell className="text-right font-bold">
+                    <TableCell className="text-right font-bold whitespace-nowrap">
                         <div className="flex items-center justify-end gap-1">
                             <Fuel className="w-3 h-3" />
                             {roundToTwo(totalFuelAmount)} л
                         </div>
                     </TableCell>
-                    <TableCell className="text-right font-bold">
-                        {formatCurrency(trips.reduce((sum, t) => sum + t.amortization, 0))}
+                    <TableCell className="text-right font-bold whitespace-nowrap">
+                        {formatCurrency(totalAmortization)}
                     </TableCell>
                     <TableCell colSpan={3}></TableCell>
                 </TableRow>

@@ -13,7 +13,6 @@ const baseMenuItems = [
 
 const adminMenuItem = { id: "admin", label: "Админ-панель", icon: "Shield", path: "/admin", requiresAuth: true };
 
-// Проверка на статического админа (из кода, не из БД)
 const isStaticAdmin = (user: any): boolean => {
     return user?.email === 'kooooooffe@gmail.com' && user?.id === 0;
 };

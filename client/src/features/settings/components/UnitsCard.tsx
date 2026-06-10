@@ -38,12 +38,13 @@ export const UnitsCard = ({
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-                <div className="grid grid-cols-3 gap-4">
+                {/* На мобильных колонка, на планшетах и выше - 3 колонки */}
+                <div className="flex flex-col sm:grid sm:grid-cols-3 gap-4">
                     <div className="space-y-2">
                         <Label htmlFor="currency">Валюта</Label>
                         <Select value={currency} onValueChange={onCurrencyChange}>
-                            <SelectTrigger id="currency">
-                                <SelectValue />
+                            <SelectTrigger id="currency" className="w-full">
+                                <SelectValue placeholder="Выберите валюту" />
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="RUB">Рубль (₽)</SelectItem>
@@ -56,8 +57,8 @@ export const UnitsCard = ({
                     <div className="space-y-2">
                         <Label htmlFor="distanceUnit">Расстояние</Label>
                         <Select value={distanceUnit} onValueChange={onDistanceUnitChange}>
-                            <SelectTrigger id="distanceUnit">
-                                <SelectValue />
+                            <SelectTrigger id="distanceUnit" className="w-full">
+                                <SelectValue placeholder="Выберите единицу" />
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="km">Километры (км)</SelectItem>
@@ -69,8 +70,8 @@ export const UnitsCard = ({
                     <div className="space-y-2">
                         <Label htmlFor="fuelUnit">Топливо</Label>
                         <Select value={fuelUnit} onValueChange={onFuelUnitChange}>
-                            <SelectTrigger id="fuelUnit">
-                                <SelectValue />
+                            <SelectTrigger id="fuelUnit" className="w-full">
+                                <SelectValue placeholder="Выберите единицу" />
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="liters">Литры (л)</SelectItem>

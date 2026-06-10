@@ -42,21 +42,15 @@ export const TripForm = ({ onAddTrip }: TripFormProps) => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        // Определяем статус поездки на основе даты
-        let status: "completed" | "planned" | "cancelled" = "planned";
+        let status: "completed" | "planned" | "cancelled"
         if (tripDate <= today) {
             status = "completed";
         } else {
             status = "planned";
         }
 
-        // Амортизация: пробег * 5
         const amortization = calculateAmortization(distance, 5);
-
-        // Расчет количества топлива из среднего расхода
         const fuelAmount = calculateFuelAmount(avgConsumption, distance);
-
-        // Стоимость топлива (может быть рассчитана или введена вручную)
         const fuelCost = fuelAmount * 50;
 
         const newTrip = {
@@ -87,74 +81,82 @@ export const TripForm = ({ onAddTrip }: TripFormProps) => {
     return (
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-                <Button className="gap-2">
+                <Button className="gap-2 w-full sm:w-auto">
                     <Plus className="w-4 h-4" />
                     Добавить поездку
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[550px]">
+            <DialogContent className="sm:max-w-[550px] w-[95vw] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                    <DialogTitle>Новая поездка</DialogTitle>
-                    <DialogDescription>
+                    <DialogTitle className="text-lg sm:text-xl">Новая поездка</DialogTitle>
+                    <DialogDescription className="text-sm">
                         Добавьте информацию о командировке
                     </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
-                    <div className="grid grid-cols-2 gap-4">
+                    {/* Дата и Цель - на мобильных в колонку */}
+                    <div className="flex flex-col sm:grid sm:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <Label htmlFor="date">Дата</Label>
+                            <Label htmlFor="date" className="text-sm sm:text-base">Дата</Label>
                             <Input
                                 id="date"
                                 type="date"
                                 value={formData.date}
                                 onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                                className="w-full text-base sm:text-sm"
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="purpose">Цель поездки</Label>
+                            <Label htmlFor="purpose" className="text-sm sm:text-base">Цель</Label>
                             <Input
                                 id="purpose"
                                 placeholder="Например: Встреча с клиентом"
                                 value={formData.purpose}
                                 onChange={(e) => setFormData({ ...formData, purpose: e.target.value })}
+                                className="w-full text-base sm:text-sm"
                             />
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    {/* Откуда и Куда - на мобильных в колонку */}
+                    <div className="flex flex-col sm:grid sm:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <Label htmlFor="from">Откуда</Label>
+                            <Label htmlFor="from" className="text-sm sm:text-base">Откуда</Label>
                             <Input
                                 id="from"
-                                placeholder="Город отправления"
+                                placeholder="Откуда"
                                 value={formData.from}
                                 onChange={(e) => setFormData({ ...formData, from: e.target.value })}
+                                className="w-full text-base sm:text-sm"
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="to">Куда</Label>
+                            <Label htmlFor="to" className="text-sm sm:text-base">Куда</Label>
                             <Input
                                 id="to"
-                                placeholder="Город назначения"
+                                placeholder="Куда"
                                 value={formData.to}
                                 onChange={(e) => setFormData({ ...formData, to: e.target.value })}
+                                className="w-full text-base sm:text-sm"
                             />
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-4">
+                    {/* Пробег, Расход, Тип - на мобильных в колонку */}
+                    <div className="flex flex-col sm:grid sm:grid-cols-3 gap-4">
                         <div className="space-y-2">
-                            <Label htmlFor="distance">Пробег (км)</Label>
+                            <Label htmlFor="distance" className="text-sm sm:text-base">Пробег (км)</Label>
                             <Input
                                 id="distance"
                                 type="number"
                                 placeholder="500"
                                 value={formData.distance}
                                 onChange={(e) => setFormData({ ...formData, distance: e.target.value })}
+                                className="w-full text-base sm:text-sm"
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="avgConsumption">Ср.расход (л/100 км)</Label>
+                            <Label htmlFor="avgConsumption" className="text-sm sm:text-base">Ср. расход (л/100км)</Label>
                             <Input
                                 id="avgConsumption"
                                 type="number"
@@ -162,20 +164,22 @@ export const TripForm = ({ onAddTrip }: TripFormProps) => {
                                 placeholder="11"
                                 value={formData.avgConsumption}
                                 onChange={(e) => setFormData({ ...formData, avgConsumption: e.target.value })}
+                                className="w-full text-base sm:text-sm"
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="expenseLine">Строка расходов</Label>
+                            <Label htmlFor="expenseLine" className="text-sm sm:text-base">Тип расходов</Label>
                             <Input
                                 id="expenseLine"
-                                placeholder="ОХЗ Перспективное строительство"
+                                placeholder="Тип расходов"
                                 value={formData.expenseLine}
                                 onChange={(e) => setFormData({ ...formData, expenseLine: e.target.value })}
+                                className="w-full text-base sm:text-sm"
                             />
                         </div>
                     </div>
                 </div>
-                <Button onClick={handleAddTrip} className="w-full">
+                <Button onClick={handleAddTrip} className="w-full text-sm sm:text-base py-2 sm:py-2.5">
                     Добавить поездку
                 </Button>
             </DialogContent>

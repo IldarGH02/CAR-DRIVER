@@ -1,5 +1,4 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@shared/ui/card";
-import { Label } from "@shared/ui/label";
 import { availableColumns, ReportColumn } from "../config/reportTypes";
 
 interface ColumnSelectorProps {
@@ -10,26 +9,26 @@ interface ColumnSelectorProps {
 export const ColumnSelector = ({ visibleColumns, onToggleColumn }: ColumnSelectorProps) => {
     return (
         <Card>
-            <CardHeader>
-                <CardTitle className="text-lg">Настройка отображения</CardTitle>
-                <CardDescription>
+            <CardHeader className="p-4 sm:p-6">
+                <CardTitle className="text-lg sm:text-xl">Настройка отображения</CardTitle>
+                <CardDescription className="text-sm">
                     Выберите параметры, которые будут отображаться в отчёте
                 </CardDescription>
             </CardHeader>
-            <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <CardContent className="p-4 sm:p-6 pt-0">
+                <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3">
                     {availableColumns.map((column: ReportColumn) => (
                         <label
                             key={column.id}
-                            className="flex items-center space-x-2 cursor-pointer hover:bg-muted p-2 rounded-lg transition-colors"
+                            className="flex items-center gap-2 sm:gap-3 cursor-pointer hover:bg-muted p-2 sm:p-3 rounded-lg transition-colors active:bg-muted/70"
                         >
                             <input
                                 type="checkbox"
                                 checked={visibleColumns.includes(column.id)}
                                 onChange={() => onToggleColumn(column.id)}
-                                className="w-4 h-4 text-primary rounded focus:ring-primary"
+                                className="w-4 h-4 sm:w-5 sm:h-5 text-primary rounded focus:ring-primary cursor-pointer flex-shrink-0"
                             />
-                            <span className="text-sm">{column.label}</span>
+                            <span className="text-sm sm:text-base truncate">{column.label}</span>
                         </label>
                     ))}
                 </div>

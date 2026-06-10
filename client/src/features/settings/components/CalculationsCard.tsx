@@ -39,6 +39,7 @@ export const CalculationsCard = ({
                         step="0.01"
                         value={amortizationRate}
                         onChange={(e) => onAmortizationRateChange(e.target.value)}
+                        className="w-full"
                     />
                     <p className="text-xs text-muted-foreground">
                         Средняя стоимость эксплуатации автомобиля на единицу расстояния.

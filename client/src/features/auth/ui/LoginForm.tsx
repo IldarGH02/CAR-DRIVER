@@ -51,7 +51,7 @@ export function LoginForm() {
                 <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
-                    placeholder="••••••"
+                    placeholder="Пароль"
                     error={errors.password?.message}
                     {...register("password")}
                 />

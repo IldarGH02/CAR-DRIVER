@@ -46,19 +46,23 @@ export const UserEditDialog = ({ user, isOpen, onClose, onUpdateUser }: UserEdit
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent>
+            <DialogContent className="w-[95vw] max-w-[550px] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                    <DialogTitle>Редактирование пользователя</DialogTitle>
+                    <DialogTitle className="text-lg sm:text-xl">Редактирование пользователя</DialogTitle>
                 </DialogHeader>
-                <div className="space-y-4">
+                <div className="space-y-4 py-4">
                     <div className="space-y-2">
-                        <Label>Имя</Label>
-                        <Input value={editUser.name} onChange={(e) => setEditUser({ ...editUser, name: e.target.value })} />
+                        <Label className="text-sm sm:text-base">Имя</Label>
+                        <Input
+                            value={editUser.name}
+                            onChange={(e) => setEditUser({ ...editUser, name: e.target.value })}
+                            className="w-full text-base sm:text-sm"
+                        />
                     </div>
                     <div className="space-y-2">
-                        <Label>Роль</Label>
+                        <Label className="text-sm sm:text-base">Роль</Label>
                         <Select value={editUser.role} onValueChange={(v) => setEditUser({ ...editUser, role: v })}>
-                            <SelectTrigger>
+                            <SelectTrigger className="w-full">
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -67,21 +71,42 @@ export const UserEditDialog = ({ user, isOpen, onClose, onUpdateUser }: UserEdit
                             </SelectContent>
                         </Select>
                     </div>
-                    <Separator />
-                    <h4 className="font-medium">Информация об автомобиле</h4>
+
+                    <Separator className="my-4" />
+
+                    <h4 className="font-medium text-sm sm:text-base">Информация об автомобиле</h4>
+
                     <div className="space-y-2">
-                        <Label>Модель автомобиля</Label>
-                        <Input value={editUser.carModel} onChange={(e) => setEditUser({ ...editUser, carModel: e.target.value })} />
+                        <Label className="text-sm sm:text-base">Модель автомобиля</Label>
+                        <Input
+                            value={editUser.carModel}
+                            onChange={(e) => setEditUser({ ...editUser, carModel: e.target.value })}
+                            className="w-full text-base sm:text-sm"
+                            placeholder="Например: Toyota Camry"
+                        />
                     </div>
                     <div className="space-y-2">
-                        <Label>Год выпуска</Label>
-                        <Input value={editUser.carYear} onChange={(e) => setEditUser({ ...editUser, carYear: e.target.value })} />
+                        <Label className="text-sm sm:text-base">Год выпуска</Label>
+                        <Input
+                            value={editUser.carYear}
+                            onChange={(e) => setEditUser({ ...editUser, carYear: e.target.value })}
+                            className="w-full text-base sm:text-sm"
+                            placeholder="Например: 2020"
+                        />
                     </div>
                     <div className="space-y-2">
-                        <Label>Гос. номер</Label>
-                        <Input value={editUser.licensePlate} onChange={(e) => setEditUser({ ...editUser, licensePlate: e.target.value })} />
+                        <Label className="text-sm sm:text-base">Гос. номер</Label>
+                        <Input
+                            value={editUser.licensePlate}
+                            onChange={(e) => setEditUser({ ...editUser, licensePlate: e.target.value })}
+                            className="w-full text-base sm:text-sm"
+                            placeholder="Например: А123БВ 777"
+                        />
                     </div>
-                    <Button onClick={handleSubmit} className="w-full">Сохранить</Button>
+
+                    <Button onClick={handleSubmit} className="w-full text-sm sm:text-base py-2 sm:py-2.5">
+                        Сохранить
+                    </Button>
                 </div>
             </DialogContent>
         </Dialog>

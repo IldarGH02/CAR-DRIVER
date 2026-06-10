@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@shar
 import { Switch } from "@shared/ui/switch";
 import { Separator } from "@shared/ui/separator";
 import { Settings as SettingsIcon, Bell, Save } from "lucide-react";
+import { useThemeStore } from "@entities/theme/model/themeStore";
 
 interface PreferencesCardProps {
     darkMode: boolean;
@@ -20,6 +21,13 @@ export const PreferencesCard = ({
                                     onNotificationsChange,
                                     onAutoSaveChange,
                                 }: PreferencesCardProps) => {
+    const { toggleTheme } = useThemeStore();
+
+    const handleDarkModeToggle = (checked: boolean) => {
+        toggleTheme();
+        onDarkModeChange(checked);
+    };
+
     return (
         <Card>
             <CardHeader>
@@ -42,7 +50,7 @@ export const PreferencesCard = ({
                             </p>
                         </div>
                     </div>
-                    <Switch checked={darkMode} onCheckedChange={onDarkModeChange} />
+                    <Switch checked={darkMode} onCheckedChange={handleDarkModeToggle} />
                 </div>
 
                 <Separator />

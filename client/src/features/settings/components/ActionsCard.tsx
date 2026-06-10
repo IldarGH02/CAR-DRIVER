@@ -1,7 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@shared/ui/card";
 import { Button } from "@shared/ui/button";
-import { Separator } from "@shared/ui/separator";
-import { Save, Trash2, Sun, Moon } from "lucide-react";
+import { Save, Trash2 } from "lucide-react";
 import { useThemeStore } from "@entities/theme/model/themeStore";
 
 interface ActionsCardProps {
@@ -23,7 +22,6 @@ export const ActionsCard = ({
                                 onSave,
                                 onReset,
                             }: ActionsCardProps) => {
-    const { theme, toggleTheme } = useThemeStore();
 
     return (
         <Card className="sticky top-6">
@@ -40,15 +38,6 @@ export const ActionsCard = ({
                     <Trash2 className="w-4 h-4" />
                     Сбросить настройки
                 </Button>
-
-                <Separator className="my-4" />
-
-                <Button onClick={toggleTheme} variant="outline" className="w-full gap-2">
-                    {theme === 'light' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
-                    {theme === 'light' ? 'Тёмная тема' : 'Светлая тема'}
-                </Button>
-
-                <Separator className="my-4" />
 
                 <div className="space-y-2">
                     <p className="text-sm font-medium">Текущие настройки:</p>

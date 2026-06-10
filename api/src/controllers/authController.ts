@@ -1,6 +1,5 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { UserModel } from '../models/User';
-import { adminConfig, isAdminUser, getAdminUser } from '../config/adminConfig';
 
 interface RegisterBody {
     email: string;
@@ -25,14 +24,6 @@ export const authController = {
         }
 
         try {
-            // Запрещаем регистрацию с email статического админа
-            if (email === adminConfig.email) {
-                return reply.code(400).send({
-                    success: false,
-                    message: 'This email is reserved'
-                });
-            }
-
             const existingUser = await UserModel.findByEmail(email);
             if (existingUser) {
                 return reply.code(400).send({
@@ -75,22 +66,6 @@ export const authController = {
         }
 
         try {
-            // Проверка статического админа
-            if (isAdminUser(email, password)) {
-                const adminUser = getAdminUser();
-                const token = await reply.jwtSign({
-                    id: adminUser.id,
-                    email: adminUser.email
-                });
-
-                return reply.send({
-                    success: true,
-                    token,
-                    user: adminUser
-                });
-            }
-
-            // Обычная проверка из БД
             const user = await UserModel.findByEmail(email);
             if (!user) {
                 return reply.code(401).send({
@@ -131,7 +106,10 @@ export const authController = {
 
     getMe: async (request: FastifyRequest, reply: FastifyReply) => {
         try {
+            // Получаем данные пользователя из JWT токена
             const userData = request.user as { id: number; email: string };
+
+            console.log('getMe - userData:', userData);
 
             if (!userData || !userData.id) {
                 return reply.code(401).send({
@@ -140,15 +118,10 @@ export const authController = {
                 });
             }
 
-            // Проверка статического админа
-            if (userData.email === adminConfig.email && userData.id === 0) {
-                return reply.send({
-                    success: true,
-                    user: getAdminUser()
-                });
-            }
+             const user = await UserModel.findById(userData.id);
 
-            const user = await UserModel.findById(userData.id);
+            console.log('getMe - user from DB:', user);
+
             if (!user) {
                 return reply.code(404).send({
                     success: false,
@@ -169,7 +142,7 @@ export const authController = {
                 }
             });
         } catch (error) {
-            console.error(error);
+            console.error('getMe error:', error);
             reply.code(500).send({ success: false, message: 'Internal server error' });
         }
     }

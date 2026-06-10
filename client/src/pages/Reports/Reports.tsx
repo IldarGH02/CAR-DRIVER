@@ -62,7 +62,6 @@ export function Reports() {
                 </CardContent>
               </Card>
 
-              {/* Панель настройки колонок - показываем только для настраиваемого отчёта */}
               {reportType === "custom" && (
                   <ColumnSelector visibleColumns={visibleColumns} onToggleColumn={toggleColumn} />
               )}

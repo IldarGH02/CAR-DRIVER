@@ -6,7 +6,7 @@ export interface User {
     id: number;
     email: string;
     name: string;
-    role?: string; // Добавляем поле role
+    role?: string;
     carModel?: string;
     carYear?: string;
     licensePlate?: string;
@@ -26,13 +26,13 @@ interface UserState {
 
 export const useUserStore = create<UserState>()(
     persist(
-        (set) => ({
+        (set, get) => ({
             user: null,
             isAuthenticated: false,
             isLoading: false,
 
             setUser: (user) => {
-                set({ user });
+                set({ user, isAuthenticated: !!user });
             },
 
             setIsAuthenticated: (isAuthenticated) => {
@@ -51,24 +51,44 @@ export const useUserStore = create<UserState>()(
             },
 
             fetchUser: async () => {
+                // Если уже есть пользователь и он не истек, не делаем запрос
+                const currentUser = get().user;
+                if (currentUser && currentUser.id !== undefined) {
+                    console.log('User already loaded, skipping fetch');
+                    set({ isLoading: false });
+                    return;
+                }
+
                 set({ isLoading: true });
                 try {
+                    console.log('Fetching user from /auth/me...');
                     const response = await api.get('/auth/me');
+                    console.log('Fetch user response:', response.data);
+
                     if (response.data.success && response.data.user) {
                         set({
                             user: {
                                 id: response.data.user.id,
                                 email: response.data.user.email,
                                 name: response.data.user.name,
-                                role: response.data.user.role,
+                                role: response.data.user.role || 'user',
                                 carModel: response.data.user.carModel,
                                 carYear: response.data.user.carYear,
                                 licensePlate: response.data.user.licensePlate
-                            }
+                            },
+                            isAuthenticated: true
                         });
+                    } else {
+                        // Если ответ неуспешный, не сбрасываем пользователя
+                        console.log('Fetch user failed, keeping existing user');
                     }
-                } catch (error) {
-                    console.error('Fetch user error:', error);
+                } catch (error: any) {
+                    console.error('Fetch user error:', error.response?.status, error.response?.data);
+                    // Не сбрасываем пользователя при ошибке, если он уже есть
+                    const existingUser = get().user;
+                    if (!existingUser) {
+                        set({ user: null, isAuthenticated: false });
+                    }
                 } finally {
                     set({ isLoading: false });
                 }

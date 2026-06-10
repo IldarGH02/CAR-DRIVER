@@ -28,6 +28,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         set({ isLoading: true, error: null });
         try {
             const response = await api.get('/settings');
+            console.log('fetchSettings response:', response.data);
             set({ settings: response.data.settings });
         } catch (error: any) {
             console.error('Fetch settings error:', error);
@@ -40,8 +41,13 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     updateSettings: async (data) => {
         set({ isLoading: true, error: null });
         try {
+            console.log('updateSettings sending:', data);
             const response = await api.put('/settings', data);
-            set({ settings: response.data.settings });
+            console.log('updateSettings response:', response.data);
+
+            if (response.data.success) {
+                set({ settings: response.data.settings });
+            }
         } catch (error: any) {
             console.error('Update settings error:', error);
             set({ error: error.message });
@@ -51,11 +57,3 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         }
     },
 }));
-
-export const useSettingsStoreData = () => ({
-    settings: useSettingsStore((state) => state.settings),
-    isLoading: useSettingsStore((state) => state.isLoading),
-    error: useSettingsStore((state) => state.error),
-    fetchSettings: useSettingsStore.getState().fetchSettings,
-    updateSettings: useSettingsStore.getState().updateSettings,
-});

@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useUserStore } from '@entities/user/model/userStore';
 import { useThemeStore } from '@entities/theme/model/themeStore';
+import { useSettingsStore } from '../model/settingsStore';
 import { toast } from 'sonner';
 import { api } from '@shared/api/axiosInstance';
 
 export const useSettings = () => {
     const { user, updateUser } = useUserStore();
     const { theme, setTheme } = useThemeStore();
+    const { settings, fetchSettings, updateSettings } = useSettingsStore();
 
     const [profileData, setProfileData] = useState({
         name: '',
@@ -20,7 +22,6 @@ export const useSettings = () => {
     const [distanceUnit, setDistanceUnit] = useState('km');
     const [fuelUnit, setFuelUnit] = useState('liters');
     const [amortizationRate, setAmortizationRate] = useState('2.68');
-
     const [notifications, setNotifications] = useState(true);
     const [autoSave, setAutoSave] = useState(true);
     const [isLoading, setIsLoading] = useState(false);
@@ -34,33 +35,34 @@ export const useSettings = () => {
                 carYear: user.carYear || '',
                 licensePlate: user.licensePlate || ''
             });
-            fetchSettings();
+            loadSettings();
         }
     }, [user]);
 
-    const fetchSettings = async () => {
+    useEffect(() => {
+        if (settings) {
+            setCurrency(settings.currency || 'RUB');
+            setDistanceUnit(settings.distance_unit || 'km');
+            setFuelUnit(settings.fuel_unit || 'liters');
+            const rate = settings.amortization_rate;
+            setAmortizationRate(rate !== undefined && rate !== null ? String(rate) : '2.68');
+            // Исправлено: преобразуем number в boolean
+            setNotifications(settings.notifications === 1);
+            setAutoSave(settings.auto_save === 1);
+        }
+    }, [settings]);
+
+    const loadSettings = async () => {
         try {
-            const response = await api.get('/settings');
-            if (response.data.success) {
-                const settings = response.data.settings;
-                setCurrency(settings.currency || 'RUB');
-                setDistanceUnit(settings.distance_unit || 'km');
-                setFuelUnit(settings.fuel_unit || 'liters');
-                setAmortizationRate(String(settings.amortization_rate || '2.68'));
-                setNotifications(settings.notifications === 1 || settings.notifications === true);
-                setAutoSave(settings.auto_save === 1 || settings.auto_save === true);
-            }
+            await fetchSettings();
         } catch (error) {
-            console.error('Failed to fetch settings:', error);
+            console.error('Failed to load settings:', error);
         }
     };
 
     const handleSaveSettings = async () => {
         setIsLoading(true);
         try {
-            console.log('=== SAVING SETTINGS ===');
-            console.log('amortizationRate before save:', amortizationRate);
-
             if (user && user.id !== 0) {
                 await api.put('/settings/profile', {
                     name: profileData.name,
@@ -71,26 +73,16 @@ export const useSettings = () => {
                 updateUser(profileData);
             }
 
-            const settingsToSend = {
+            await updateSettings({
                 currency,
                 distance_unit: distanceUnit,
                 fuel_unit: fuelUnit,
-                amortization_rate: Number(amortizationRate), // ← преобразуем в число
+                amortization_rate: Number(amortizationRate),
                 notifications: notifications ? 1 : 0,
                 auto_save: autoSave ? 1 : 0
-            };
+            });
 
-            console.log('Settings to send:', settingsToSend);
-
-            const response = await api.put('/settings', settingsToSend);
-            console.log('Save response:', response.data);
-
-            if (response.data.success) {
-                // Обновляем локальное состояние из ответа
-                const savedSettings = response.data.settings;
-                setAmortizationRate(String(savedSettings.amortization_rate || '2.68'));
-                toast.success('Настройки сохранены');
-            }
+            toast.success('Настройки сохранены');
         } catch (error: any) {
             console.error('Save error:', error);
             toast.error(error.response?.data?.message || 'Ошибка сохранения');
@@ -106,7 +98,6 @@ export const useSettings = () => {
         setAmortizationRate('2.68');
         setNotifications(true);
         setAutoSave(true);
-
         setTheme('light');
 
         if (user) {

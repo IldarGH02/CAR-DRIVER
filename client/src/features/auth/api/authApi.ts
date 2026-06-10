@@ -7,9 +7,7 @@ export const authApi = {
             const response = await api.post('/auth/login', { email, password });
 
             if (response.data.success && response.data.token && response.data.user) {
-                // Сохраняем токен и пользователя
                 localStorage.setItem('token', response.data.token);
-                // Обновляем стор
                 useUserStore.getState().setUser(response.data.user);
                 useUserStore.getState().setIsAuthenticated(true);
             }
@@ -26,14 +24,6 @@ export const authApi = {
     register: async (email: string, password: string, name: string) => {
         try {
             const response = await api.post('/auth/register', { email, password, name });
-
-            if (response.data.success && response.data.token && response.data.user) {
-                // Сохраняем токен и пользователя
-                localStorage.setItem('token', response.data.token);
-                useUserStore.getState().setUser(response.data.user);
-                useUserStore.getState().setIsAuthenticated(true);
-            }
-
             return response.data;
         } catch (error: any) {
             return {
@@ -62,7 +52,7 @@ export const authApi = {
             console.log('✅ Verify code response:', response.data);
 
             if (response.data.success && response.data.token && response.data.user) {
-                // Сохраняем токен и пользователя
+                // ✅ ЗДЕСЬ сохраняем токен только после успешной верификации
                 localStorage.setItem('token', response.data.token);
                 useUserStore.getState().setUser(response.data.user);
                 useUserStore.getState().setIsAuthenticated(true);

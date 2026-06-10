@@ -8,6 +8,7 @@ import tripRoutes from './routes/tripRoutes.js';
 import reportRoutes from './routes/reportRoutes.js';
 import settingsRoutes from './routes/settingsRoutes.js';
 import { errorHandler } from './middleware/errorHandler.js';
+import adminRoutes from './routes/adminRoutes.js';
 
 const fastify = Fastify({
     logger: false, // Отключаем логгер в продакшене
@@ -65,6 +66,7 @@ const start = async () => {
         await fastify.register(tripRoutes, { prefix: '/api/trips' });
         await fastify.register(reportRoutes, { prefix: '/api/reports' });
         await fastify.register(settingsRoutes, { prefix: '/api/settings' });
+        await fastify.register(adminRoutes, { prefix: '/api/admin' });
         console.log('✅ Routes registered');
 
         fastify.setErrorHandler(errorHandler);

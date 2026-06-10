@@ -1,18 +1,18 @@
 import { FastifyInstance } from 'fastify';
-import { authenticate } from '../middleware/auth';
 import { adminController } from '../controllers/adminController';
+import { authenticate } from '../middleware/auth';
 import { adminAuth } from '../middleware/adminAuth';
 
 export default async function adminRoutes(fastify: FastifyInstance) {
-    // Все маршруты требуют авторизации
     fastify.addHook('preHandler', authenticate);
+    fastify.addHook('preHandler', adminAuth);
 
-    // Маршруты админа (дополнительная проверка)
-    fastify.get('/users', { preHandler: [adminAuth] }, adminController.getAllUsers);
-    fastify.post('/users', { preHandler: [adminAuth] }, adminController.createUser);
-    fastify.put('/users/:id', { preHandler: [adminAuth] }, adminController.updateUser);
-    fastify.delete('/users/:id', { preHandler: [adminAuth] }, adminController.deleteUser);
-    fastify.get('/users/:userId/trips', { preHandler: [adminAuth] }, adminController.getUserTrips);
-    fastify.post('/users/:userId/trips', { preHandler: [adminAuth] }, adminController.addUserTrip);
-    fastify.delete('/users/:userId/trips/:tripId', { preHandler: [adminAuth] }, adminController.deleteUserTrip);
+    // Управление пользователями
+    fastify.get('/users', adminController.getUsers);
+    fastify.get('/users/:id', adminController.getUserById);
+    fastify.put('/users/:id', adminController.updateUser);
+    fastify.delete('/users/:id', adminController.deleteUser);
+
+    // Статистика
+    fastify.get('/stats', adminController.getStats);
 }

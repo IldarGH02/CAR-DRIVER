@@ -72,7 +72,7 @@ export const useSettings = () => {
                 currency,
                 distance_unit: distanceUnit,
                 fuel_unit: fuelUnit,
-                amortization_rate: parseFloat(amortizationRate),
+                amortization_rate: Number(amortizationRate),
                 notifications: notifications ? 1 : 0,
                 auto_save: autoSave ? 1 : 0
             });

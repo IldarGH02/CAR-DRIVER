@@ -27,18 +27,19 @@ export const settingsController = {
             const data = request.body as any;
 
             console.log('Update settings - userId:', userId);
-            console.log('Update settings - amortization_rate:', data.amortization_rate);
+            console.log('Update settings - amortization_rate received:', data.amortization_rate);
 
             let settings = await SettingsModel.getSettings(userId);
             if (!settings) {
                 await SettingsModel.createSettings(userId);
             }
 
+            // Убедитесь, что значение передается правильно
             await SettingsModel.updateSettings(userId, {
                 currency: data.currency,
                 distance_unit: data.distance_unit,
                 fuel_unit: data.fuel_unit,
-                amortization_rate: parseFloat(data.amortization_rate) || 2.68,
+                amortization_rate: data.amortization_rate, // ← передаем как есть
                 notifications: data.notifications,
                 auto_save: data.auto_save
             });

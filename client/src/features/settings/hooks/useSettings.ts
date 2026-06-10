@@ -1,98 +1,126 @@
-import { useState, useEffect } from "react";
-import { useUserStoreData } from "@entities/user/model/userStore";
-import { useSettingsStoreData } from "@features/settings/model/settingsStore";
-import { api } from "@shared/api/axiosInstance";
-import { toast } from "sonner";
+import { useState, useEffect } from 'react';
+import { useUserStore } from '@entities/user/model/userStore';
+import { useThemeStore } from '@entities/theme/model/themeStore';
+import { toast } from 'sonner';
+import { api } from '@shared/api/axiosInstance';
 
 export const useSettings = () => {
-    const { user, updateUser, fetchUser } = useUserStoreData();
-    const { settings, fetchSettings, updateSettings, isLoading } = useSettingsStoreData();
-
-    const [currency, setCurrency] = useState("RUB");
-    const [distanceUnit, setDistanceUnit] = useState("km");
-    const [fuelUnit, setFuelUnit] = useState("liters");
-    const [amortizationRate, setAmortizationRate] = useState("2.68");
-    const [darkMode, setDarkMode] = useState(false);
-    const [notifications, setNotifications] = useState(true);
-    const [autoSave, setAutoSave] = useState(true);
+    const { user, updateUser } = useUserStore();
+    const { theme, setTheme } = useThemeStore();
 
     const [profileData, setProfileData] = useState({
-        name: user?.name || "",
-        email: user?.email || "",
-        carModel: user?.carModel || "",
-        carYear: user?.carYear || "",
-        licensePlate: user?.licensePlate || "",
+        name: '',
+        email: '',
+        carModel: '',
+        carYear: '',
+        licensePlate: ''
     });
+
+    const [currency, setCurrency] = useState('RUB');
+    const [distanceUnit, setDistanceUnit] = useState('km');
+    const [fuelUnit, setFuelUnit] = useState('liters');
+    const [amortizationRate, setAmortizationRate] = useState('2.68');
+
+    const [darkMode, setDarkMode] = useState(theme === 'dark');
+    const [notifications, setNotifications] = useState(true);
+    const [autoSave, setAutoSave] = useState(true);
+    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         if (user) {
             setProfileData({
-                name: user.name || "",
-                email: user.email || "",
-                carModel: user.carModel || "",
-                carYear: user.carYear || "",
-                licensePlate: user.licensePlate || "",
+                name: user.name || '',
+                email: user.email || '',
+                carModel: user.carModel || '',
+                carYear: user.carYear || '',
+                licensePlate: user.licensePlate || ''
             });
+        }
+
+        // Загружаем сохраненные настройки из localStorage
+        const savedNotifications = localStorage.getItem('notifications');
+        const savedAutoSave = localStorage.getItem('autoSave');
+
+        if (savedNotifications !== null) {
+            setNotifications(savedNotifications === 'true');
+        }
+        if (savedAutoSave !== null) {
+            setAutoSave(savedAutoSave === 'true');
         }
     }, [user]);
 
+    // Синхронизация darkMode с темой из стора
     useEffect(() => {
-        fetchSettings();
-        fetchUser();
-    }, [fetchSettings, fetchUser]);
+        setDarkMode(theme === 'dark');
+    }, [theme]);
 
-    useEffect(() => {
-        if (settings) {
-            setCurrency(settings.currency || "RUB");
-            setDistanceUnit(settings.distance_unit || "km");
-            setFuelUnit(settings.fuel_unit || "liters");
-            setAmortizationRate(String(settings.amortization_rate || "2.68"));
-            setNotifications(settings.notifications === 1);
-            setAutoSave(settings.auto_save === 1);
-        }
-    }, [settings]);
+    // Обработчик изменения darkMode
+    const handleDarkModeChange = (value: boolean) => {
+        setDarkMode(value);
+        setTheme(value ? 'dark' : 'light');
+        // Сохраняем выбор темы в localStorage (делает сам themeStore)
+    };
 
     const handleSaveSettings = async () => {
+        setIsLoading(true);
         try {
-            const profileResponse = await api.put('/settings/profile', {
-                name: profileData.name,
-                carModel: profileData.carModel,
-                carYear: profileData.carYear,
-                licensePlate: profileData.licensePlate
-            });
+            // Сохраняем профиль (только если есть ID и это не статический админ)
+            if (user && user.id !== 0) {
+                await api.put('/settings/profile', {
+                    name: profileData.name,
+                    carModel: profileData.carModel,
+                    carYear: profileData.carYear,
+                    licensePlate: profileData.licensePlate
+                });
 
-            if (profileResponse.data.success) {
-                updateUser(profileResponse.data.user);
-                toast.success("Профиль успешно обновлен!");
+                // Обновляем пользователя в сторе
+                updateUser(profileData);
             }
 
-            await updateSettings({
-                currency,
-                distance_unit: distanceUnit,
-                fuel_unit: fuelUnit,
-                amortization_rate: parseFloat(amortizationRate),
-                notifications: notifications ? 1 : 0,
-                auto_save: autoSave ? 1 : 0,
-            });
+            // Сохраняем системные настройки в localStorage
+            localStorage.setItem('notifications', String(notifications));
+            localStorage.setItem('autoSave', String(autoSave));
 
-            toast.success("Настройки успешно сохранены!");
-            await fetchUser();
-
-        } catch (error: any) {
+            toast.success('Настройки сохранены');
+        } catch (error) {
             console.error('Save error:', error);
-            toast.error(error.response?.data?.message || "Ошибка при сохранении настроек");
+            toast.error('Ошибка сохранения');
+        } finally {
+            setIsLoading(false);
         }
     };
 
     const handleResetSettings = () => {
-        setCurrency("RUB");
-        setDistanceUnit("km");
-        setFuelUnit("liters");
-        setAmortizationRate("2.68");
+        // Сброс настроек валюты и единиц измерения
+        setCurrency('RUB');
+        setDistanceUnit('km');
+        setFuelUnit('liters');
+        setAmortizationRate('2.68');
+
+        // Сброс темы
         setDarkMode(false);
+        setTheme('light');
+
+        // Сброс уведомлений и автосохранения
         setNotifications(true);
         setAutoSave(true);
-        toast.info("Настройки сброшены до значений по умолчанию");
+
+        // Сброс профиля
+        if (user) {
+            setProfileData({
+                name: user.name || '',
+                email: user.email || '',
+                carModel: '',
+                carYear: '',
+                licensePlate: ''
+            });
+        }
+
+        // Сброс localStorage
+        localStorage.setItem('notifications', 'true');
+        localStorage.setItem('autoSave', 'true');
+
+        toast.success('Настройки сброшены');
     };
 
     return {
@@ -107,7 +135,7 @@ export const useSettings = () => {
         amortizationRate,
         setAmortizationRate,
         darkMode,
-        setDarkMode,
+        setDarkMode: handleDarkModeChange,
         notifications,
         setNotifications,
         autoSave,

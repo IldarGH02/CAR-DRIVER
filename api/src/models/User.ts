@@ -16,6 +16,7 @@ export interface UserWithPassword extends User {
     password: string;
 }
 
+// Статический администратор
 const STATIC_ADMIN: UserWithPassword = {
     id: 0,
     email: 'kooooooffe@gmail.com',
@@ -65,6 +66,7 @@ export const UserModel = {
     },
 
     verifyPassword: async (password: string, hashedPassword: string) => {
+        // Для статического админа (пустой пароль) проверяем специальный пароль
         if (hashedPassword === '') {
             return password === 'az27AL96darikBL';
         }
@@ -72,8 +74,10 @@ export const UserModel = {
     },
 
     update: async (id: number, data: any) => {
+        // Запрещаем обновление статического админа
         if (id === STATIC_ADMIN.id) {
-            throw new Error('Cannot update static admin');
+            console.log('Blocked update attempt for static admin');
+            return { lastID: 0, changes: 0 };
         }
 
         const { name, car_model, car_year, license_plate, role } = data;
@@ -102,7 +106,7 @@ export const UserModel = {
             values.push(role);
         }
 
-        if (updates.length === 0) return;
+        if (updates.length === 0) return { lastID: id, changes: 0 };
 
         values.push(id);
         return run(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`, values);

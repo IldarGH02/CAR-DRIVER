@@ -1,18 +1,33 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { UserModel } from '../models/User';
-import { SettingsModel } from '../models/Settings'; // ← добавить импорт
+import { SettingsModel } from '../models/Settings';
 
 export const settingsController = {
     // Получение настроек пользователя
     getSettings: async (request: FastifyRequest, reply: FastifyReply) => {
         try {
             const userId = (request.user as any).id;
-            let settings = await SettingsModel.getSettings(userId); // ← ИСПРАВЛЕНО
+
+            // Для статического админа возвращаем стандартные настройки
+            if (userId === 0) {
+                return reply.send({
+                    success: true,
+                    settings: {
+                        currency: 'RUB',
+                        distance_unit: 'km',
+                        fuel_unit: 'liters',
+                        amortization_rate: 2.68,
+                        notifications: true,
+                        auto_save: true
+                    }
+                });
+            }
+
+            let settings = await SettingsModel.getSettings(userId);
 
             if (!settings) {
-                // Если настроек нет, создаем стандартные
-                await SettingsModel.createSettings(userId); // ← ИСПРАВЛЕНО
-                settings = await SettingsModel.getSettings(userId); // ← ИСПРАВЛЕНО
+                await SettingsModel.createSettings(userId);
+                settings = await SettingsModel.getSettings(userId);
             }
 
             return reply.send({ success: true, settings });
@@ -26,16 +41,32 @@ export const settingsController = {
     updateSettings: async (request: FastifyRequest, reply: FastifyReply) => {
         try {
             const userId = (request.user as any).id;
-            const data = request.body as any;
 
-            // Проверяем, существуют ли настройки
-            const existingSettings = await SettingsModel.getSettings(userId); // ← ИСПРАВЛЕНО
-            if (!existingSettings) {
-                await SettingsModel.createSettings(userId); // ← ИСПРАВЛЕНО
+            // Статический админ не может обновлять настройки
+            if (userId === 0) {
+                return reply.send({
+                    success: true,
+                    message: 'Static admin settings cannot be modified',
+                    settings: {
+                        currency: 'RUB',
+                        distance_unit: 'km',
+                        fuel_unit: 'liters',
+                        amortization_rate: 2.68,
+                        notifications: true,
+                        auto_save: true
+                    }
+                });
             }
 
-            await SettingsModel.updateSettings(userId, data); // ← ИСПРАВЛЕНО
-            const settings = await SettingsModel.getSettings(userId); // ← ИСПРАВЛЕНО
+            const data = request.body as any;
+
+            const existingSettings = await SettingsModel.getSettings(userId);
+            if (!existingSettings) {
+                await SettingsModel.createSettings(userId);
+            }
+
+            await SettingsModel.updateSettings(userId, data);
+            const settings = await SettingsModel.getSettings(userId);
 
             return reply.send({ success: true, settings });
         } catch (error) {
@@ -44,10 +75,28 @@ export const settingsController = {
         }
     },
 
-    // Обновление профиля пользователя (этот метод правильный, не меняем)
+    // Обновление профиля пользователя
     updateProfile: async (request: FastifyRequest, reply: FastifyReply) => {
         try {
             const userId = (request.user as any).id;
+
+            // Статический админ не может обновлять профиль
+            if (userId === 0) {
+                return reply.send({
+                    success: true,
+                    message: 'Static admin profile cannot be modified',
+                    user: {
+                        id: 0,
+                        email: 'kooooooffe@gmail.com',
+                        name: 'Administrator',
+                        role: 'admin',
+                        carModel: null,
+                        carYear: null,
+                        licensePlate: null
+                    }
+                });
+            }
+
             const data = request.body as any;
 
             await UserModel.update(userId, {

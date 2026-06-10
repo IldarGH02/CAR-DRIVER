@@ -131,7 +131,6 @@ export const VerificationForm = ({ email, onVerified, onBack }: VerificationForm
 
             toast.success('Код подтвержден! Выполняется вход...');
 
-            // 👈 РЕДИРЕКТ НА ГЛАВНУЮ
             navigate('/');
             onVerified();
         } else {

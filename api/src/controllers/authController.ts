@@ -33,12 +33,10 @@ export const authController = {
             }
 
             const user = await UserModel.create(email, password, name);
-            const token = await reply.jwtSign({ id: user.id, email: user.email });
             const fullUser = await UserModel.findById(user.id);
 
             return reply.send({
                 success: true,
-                token,
                 user: {
                     id: fullUser?.id,
                     email: fullUser?.email,
@@ -50,7 +48,6 @@ export const authController = {
                 }
             });
         } catch (error) {
-            console.error(error);
             reply.code(500).send({ success: false, message: 'Internal server error' });
         }
     },
@@ -99,17 +96,13 @@ export const authController = {
                 }
             });
         } catch (error) {
-            console.error(error);
             reply.code(500).send({ success: false, message: 'Internal server error' });
         }
     },
 
     getMe: async (request: FastifyRequest, reply: FastifyReply) => {
         try {
-            // Получаем данные пользователя из JWT токена
             const userData = request.user as { id: number; email: string };
-
-            console.log('getMe - userData:', userData);
 
             if (!userData || !userData.id) {
                 return reply.code(401).send({
@@ -118,10 +111,7 @@ export const authController = {
                 });
             }
 
-            // Ищем пользователя в БД (включая статического админа)
             const user = await UserModel.findById(userData.id);
-
-            console.log('getMe - user from DB:', user);
 
             if (!user) {
                 return reply.code(404).send({
@@ -143,7 +133,6 @@ export const authController = {
                 }
             });
         } catch (error) {
-            console.error('getMe error:', error);
             reply.code(500).send({ success: false, message: 'Internal server error' });
         }
     }

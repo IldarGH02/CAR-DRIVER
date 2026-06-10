@@ -48,7 +48,6 @@ const tripsStore: StateCreator<ITripsState> = (set, get) => ({
             const trips = await tripsApi.getAll();
             set({ trips });
         } catch (error: any) {
-            console.error('Fetch trips error:', error);
             set({ error: error.message || 'Ошибка загрузки поездок' });
             toast.error('Ошибка загрузки поездок');
         } finally {
@@ -64,7 +63,6 @@ const tripsStore: StateCreator<ITripsState> = (set, get) => ({
             toast.success('Поездка добавлена успешно');
             return true;
         } catch (error: any) {
-            console.error('Add trip error:', error);
             set({ error: error.message || 'Не удалось добавить поездку' });
             toast.error(error.message || 'Не удалось добавить поездку');
             return false;
@@ -80,7 +78,6 @@ const tripsStore: StateCreator<ITripsState> = (set, get) => ({
             set({ trips: get().trips.filter(t => t.id !== id) });
             toast.success('Поездка удалена');
         } catch (error: any) {
-            console.error('Delete trip error:', error);
             set({ error: error.message || 'Не удалось удалить поездку' });
             toast.error(error.message || 'Не удалось удалить поездку');
             throw error;

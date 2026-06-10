@@ -4,14 +4,14 @@ import { Fuel, TrendingUp, DollarSign, MapPin } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts";
 import { useTripsStoreData } from "@features/trips/model/tripsStore";
 import { useUserStoreData } from "@entities/user/model/userStore";
-import { useSettingsStoreData } from "@features/settings/model/settingsStore";
+import { useSettingsStore } from "@features/settings/model/settingsStore";
 import { formatCurrency, formatDistance, roundToTwo } from "@shared/utils/formatters";
 import { useMediaQuery } from "@shared/hooks/useMediaQuery";
 
 export function Dashboard() {
   const { trips, fetchTrips } = useTripsStoreData();
   const { user } = useUserStoreData();
-  const { settings, fetchSettings } = useSettingsStoreData();
+  const { settings, fetchSettings } = useSettingsStore();
   const isMobile = useMediaQuery("(max-width: 768px)");
   const [stats, setStats] = useState({
     totalDistance: 0,

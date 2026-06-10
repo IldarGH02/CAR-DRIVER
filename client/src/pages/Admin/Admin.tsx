@@ -67,10 +67,7 @@ export function Admin() {
     const fetchUsers = async () => {
         setIsLoading(true);
         try {
-            console.log('Fetching users...');
             const response = await api.get('/admin/users');
-            console.log('Users response:', response.data);
-
             if (response.data.success) {
                 const filteredUsers = response.data.users.filter((u: User) => u.id !== 0);
                 setUsers(filteredUsers);
@@ -83,7 +80,6 @@ export function Admin() {
                 });
             }
         } catch (error) {
-            console.error('Failed to fetch users:', error);
             toast.error('Ошибка загрузки пользователей');
         } finally {
             setIsLoading(false);
@@ -102,7 +98,6 @@ export function Admin() {
                 setUserTrips(response.data.trips);
             }
         } catch (error) {
-            console.error('Failed to fetch user trips:', error);
             toast.error('Ошибка загрузки поездок');
         } finally {
             setIsTripsLoading(false);
@@ -147,7 +142,6 @@ export function Admin() {
             }
             return false;
         } catch (error) {
-            console.error('Failed to update user:', error);
             toast.error('Ошибка обновления пользователя');
             return false;
         }
@@ -164,7 +158,6 @@ export function Admin() {
                 await fetchUsers();
             }
         } catch (error) {
-            console.error('Failed to delete user:', error);
             toast.error('Ошибка удаления пользователя');
         }
     };
@@ -179,7 +172,6 @@ export function Admin() {
             }
             return false;
         } catch (error) {
-            console.error('Failed to add trip:', error);
             toast.error('Ошибка добавления поездки');
             return false;
         }
@@ -195,7 +187,6 @@ export function Admin() {
             }
             return false;
         } catch (error) {
-            console.error('Failed to delete trip:', error);
             toast.error('Ошибка удаления поездки');
             return false;
         }
@@ -221,17 +212,14 @@ export function Admin() {
                 toast.success('Отчёт сгенерирован');
             }
         } catch (error) {
-            console.error('Failed to generate report:', error);
             toast.error('Ошибка генерации отчёта');
         }
     };
 
-    // Загружаем пользователей при монтировании
     useEffect(() => {
         fetchUsers();
     }, []);
 
-    // Проверка загрузки пользователя
     if (isUserLoading) {
         return (
             <div className="flex-1 flex items-center justify-center bg-background p-4">
@@ -243,7 +231,6 @@ export function Admin() {
         );
     }
 
-    // Проверка авторизации
     if (!currentUser) {
         return (
             <div className="flex-1 flex items-center justify-center bg-background p-4">
@@ -259,7 +246,6 @@ export function Admin() {
         );
     }
 
-    // Проверка прав администратора (статический админ id=0 или роль admin)
     const isAdmin = currentUser.role === 'admin' || currentUser.id === 0;
 
     if (!isAdmin) {

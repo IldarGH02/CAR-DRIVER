@@ -1,4 +1,3 @@
-// client/src/pages/Privacy/Privacy.tsx
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@shared/ui/card';
 
 export function Privacy() {
@@ -154,9 +153,7 @@ export function Privacy() {
                                 По всем вопросам, связанным с обработкой персональных данных, вы можете связаться с нами:
                             </p>
                             <ul className="list-disc pl-5 space-y-1 text-muted-foreground mt-2">
-                                <li>📧 Email: privacy@gotrack.ru</li>
-                                <li>🌐 Сайт: https://gotrack.ru</li>
-                                <li>📱 Telegram: @gotrack_support</li>
+                                <li>🌐 Сайт: https://rugotrack.ru</li>
                             </ul>
                         </div>
 

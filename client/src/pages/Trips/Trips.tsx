@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@shared/ui/card";
-import { Tabs, TabsList, TabsTrigger } from "@shared/ui/tabs";
 import { useTripsStoreData } from "@features/trips/model/tripsStore";
 import { TripForm } from "@features/trips/components/TripForm";
 import { TripTable } from "@features/trips/components/TripTable";
@@ -10,7 +9,6 @@ import { useMediaQuery } from "@shared/hooks/useMediaQuery";
 
 export function Trips() {
   const { trips, isLoading, fetchTrips, addTrip, deleteTrip } = useTripsStoreData();
-  const stats = calculateTotalStats(trips);
   const isMobile = useMediaQuery("(max-width: 768px)");
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
@@ -73,7 +71,6 @@ export function Trips() {
   return (
       <div className="flex-1 overflow-auto bg-background">
         <div className="p-4 md:p-6">
-          {/* Header */}
           <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h2 className="text-2xl md:text-3xl font-semibold">Поездки</h2>
@@ -84,7 +81,6 @@ export function Trips() {
             <TripForm onAddTrip={addTrip} />
           </div>
 
-          {/* Stats Cards */}
           <TripStats
               totalTrips={filteredStats.totalTrips}
               totalDistance={filteredStats.totalDistance}
@@ -92,13 +88,11 @@ export function Trips() {
               totalFuelAmount={filteredStats.totalFuelAmount}
           />
 
-          {/* Trips Table */}
           <Card>
             <CardHeader className="pb-3">
               <div className="flex flex-col gap-4">
                 <CardTitle className="text-lg md:text-xl">Все поездки</CardTitle>
 
-                {/* Фильтры - отдельные кнопки для мобильных и десктопа */}
                 {isMobile ? (
                     <div className="grid grid-cols-2 gap-2">
                       <button

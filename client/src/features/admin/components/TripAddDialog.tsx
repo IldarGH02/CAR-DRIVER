@@ -38,7 +38,6 @@ export const TripAddDialog = ({ userId, isOpen, onOpenChange, onAddTrip }: TripA
     const [formData, setFormData] = useState<TripFormData>(initialFormData);
     const [amortizationRate, setAmortizationRate] = useState<number>(2.68);
 
-    // Загружаем настройки пользователя для получения амортизации
     useEffect(() => {
         const fetchUserSettings = async () => {
             try {
@@ -74,13 +73,8 @@ export const TripAddDialog = ({ userId, isOpen, onOpenChange, onAddTrip }: TripA
             return;
         }
 
-        // Рассчитываем амортизацию на основе настроек пользователя
         const amortization = distance * amortizationRate;
-
-        // Рассчитываем количество топлива (если цена за литр 50 ₽)
         const fuelAmount = fuelCost / 50;
-
-        // Рассчитываем средний расход
         const avgConsumption = (fuelAmount / distance) * 100;
 
         const newTrip = {
@@ -143,7 +137,6 @@ export const TripAddDialog = ({ userId, isOpen, onOpenChange, onAddTrip }: TripA
                         </div>
                     </div>
 
-                    {/* Откуда и Куда */}
                     <div className="flex flex-col sm:grid sm:grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <Label className="text-sm sm:text-base">Откуда</Label>
@@ -165,7 +158,6 @@ export const TripAddDialog = ({ userId, isOpen, onOpenChange, onAddTrip }: TripA
                         </div>
                     </div>
 
-                    {/* Пробег и Стоимость топлива */}
                     <div className="flex flex-col sm:grid sm:grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <Label className="text-sm sm:text-base">Пробег (км)</Label>

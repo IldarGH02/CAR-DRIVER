@@ -6,12 +6,6 @@ export const tripsApi = {
         const response = await api.get('/trips');
         return response.data.trips;
     },
-
-    getById: async (id: number): Promise<Trip> => {
-        const response = await api.get(`/trips/${id}`);
-        return response.data.trip;
-    },
-
     create: async (trip: Omit<Trip, 'id' | 'userId'>): Promise<Trip> => {
         const response = await api.post('/trips', trip);
         return response.data.trip;

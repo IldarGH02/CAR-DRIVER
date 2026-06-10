@@ -32,12 +32,10 @@ export const useUserStore = create<UserState>()(
             isLoading: false,
 
             setUser: (user) => {
-                console.log('setUser called:', user);
                 set({ user, isAuthenticated: !!user });
             },
 
             setIsAuthenticated: (isAuthenticated) => {
-                console.log('setIsAuthenticated called:', isAuthenticated);
                 set({ isAuthenticated });
             },
 
@@ -54,20 +52,16 @@ export const useUserStore = create<UserState>()(
             },
 
             fetchUser: async () => {
-                // НЕ вызываем fetchUser если уже есть пользователь
                 const currentUser = get().user;
                 const currentAuth = get().isAuthenticated;
 
                 if (currentUser && currentAuth) {
-                    console.log('User already loaded, skipping fetchUser');
                     return;
                 }
 
                 set({ isLoading: true });
                 try {
-                    console.log('Fetching user from /auth/me...');
                     const response = await api.get('/auth/me');
-                    console.log('Fetch user response:', response.data);
 
                     if (response.data.success && response.data.user) {
                         set({
@@ -85,7 +79,6 @@ export const useUserStore = create<UserState>()(
                     }
                 } catch (error) {
                     console.error('Fetch user error:', error);
-                    // Не сбрасываем пользователя при ошибке
                 } finally {
                     set({ isLoading: false });
                 }

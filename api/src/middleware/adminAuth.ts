@@ -17,7 +17,6 @@ export const adminAuth = async (request: FastifyRequest, reply: FastifyReply) =>
             return;
         }
     } catch (err) {
-        console.error('adminAuth error:', err);
         reply.code(401).send({ success: false, message: 'Unauthorized' });
     }
 };

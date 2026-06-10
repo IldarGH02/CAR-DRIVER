@@ -8,7 +8,6 @@ export const tripController = {
             const trips = await TripModel.findAllByUserId(userId);
             return reply.send({ success: true, trips });
         } catch (error) {
-            console.error(error);
             return reply.code(500).send({ success: false, message: 'Server error' });
         }
     },
@@ -24,7 +23,6 @@ export const tripController = {
             }
             return reply.send({ success: true, trip });
         } catch (error) {
-            console.error(error);
             return reply.code(500).send({ success: false, message: 'Server error' });
         }
     },
@@ -37,7 +35,6 @@ export const tripController = {
             const newTrip = await TripModel.create({ ...data, userId });
             return reply.send({ success: true, trip: newTrip });
         } catch (error) {
-            console.error(error);
             return reply.code(500).send({ success: false, message: 'Server error' });
         }
     },
@@ -51,7 +48,6 @@ export const tripController = {
             await TripModel.update(tripId, userId, data);
             return reply.send({ success: true });
         } catch (error) {
-            console.error(error);
             return reply.code(500).send({ success: false, message: 'Server error' });
         }
     },
@@ -64,7 +60,6 @@ export const tripController = {
             await TripModel.delete(tripId, userId);
             return reply.send({ success: true });
         } catch (error) {
-            console.error(error);
             return reply.code(500).send({ success: false, message: 'Server error' });
         }
     }

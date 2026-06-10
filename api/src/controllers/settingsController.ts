@@ -16,7 +16,6 @@ export const settingsController = {
 
             return reply.send({ success: true, settings });
         } catch (error) {
-            console.error('Get settings error:', error);
             reply.code(500).send({ success: false, message: 'Internal server error' });
         }
     },
@@ -26,15 +25,11 @@ export const settingsController = {
             const userId = (request.user as any).id;
             const data = request.body as any;
 
-            console.log('Update settings - userId:', userId);
-            console.log('Update settings - amortization_rate:', data.amortization_rate);
-
             let settings = await SettingsModel.getSettings(userId);
             if (!settings) {
                 await SettingsModel.createSettings(userId);
             }
 
-            // Обновляем настройки
             await SettingsModel.updateSettings(userId, {
                 currency: data.currency,
                 distance_unit: data.distance_unit,
@@ -45,11 +40,9 @@ export const settingsController = {
             });
 
             const updatedSettings = await SettingsModel.getSettings(userId);
-            console.log('Updated settings:', updatedSettings);
 
             return reply.send({ success: true, settings: updatedSettings });
         } catch (error) {
-            console.error('Update settings error:', error);
             reply.code(500).send({ success: false, message: 'Internal server error' });
         }
     },
@@ -81,7 +74,6 @@ export const settingsController = {
                 }
             });
         } catch (error) {
-            console.error('Update profile error:', error);
             reply.code(500).send({ success: false, message: 'Internal server error' });
         }
     }

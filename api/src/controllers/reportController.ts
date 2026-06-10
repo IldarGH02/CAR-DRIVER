@@ -25,7 +25,6 @@ export const reportController = {
             const stats = await TripModel.getStats(userId, dateFrom, dateTo);
             return reply.send({ success: true, stats });
         } catch (error) {
-            console.error(error);
             return reply.code(500).send({ success: false, message: 'Server error' });
         }
     }

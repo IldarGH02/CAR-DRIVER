@@ -40,11 +40,8 @@ export const SettingsModel = {
     },
 
     updateSettings: async (userId: number, data: any) => {
-        console.log('=== SettingsModel.updateSettings ===');
-        console.log('Input data:', data);
 
         const existing = await SettingsModel.findByUserId(userId);
-        console.log('Existing settings:', existing);
 
         if (!existing) {
             await SettingsModel.createSettings(userId);
@@ -52,7 +49,6 @@ export const SettingsModel = {
 
         if (data.amortization_rate !== undefined) {
             const rate = Number(data.amortization_rate);
-            console.log(`Updating amortization_rate to ${rate} for user ${userId}`);
             await run('UPDATE settings SET amortization_rate = ? WHERE user_id = ?', [rate, userId]);
         }
         if (data.currency !== undefined) {
@@ -72,7 +68,6 @@ export const SettingsModel = {
         }
 
         const updated = await SettingsModel.findByUserId(userId);
-        console.log('After update, settings in DB:', updated);
 
         return updated;
     },

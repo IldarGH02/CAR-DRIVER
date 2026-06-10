@@ -92,7 +92,6 @@ const ensureAdminUser = async (): Promise<void> => {
 };
 
 export const initDatabase = async (): Promise<void> => {
-    // Восстанавливаем БД из бэкапа перед миграциями
     await initBackup();
 
     await runMigrations();

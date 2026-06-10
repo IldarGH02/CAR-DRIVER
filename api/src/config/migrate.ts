@@ -6,7 +6,6 @@ interface Migration {
     up: () => Promise<void>;
 }
 
-// Создаем таблицу для отслеживания миграций
 const createMigrationsTable = async (): Promise<void> => {
     await run(`
         CREATE TABLE IF NOT EXISTS migrations (
@@ -18,24 +17,20 @@ const createMigrationsTable = async (): Promise<void> => {
     `);
 };
 
-// Проверяем, была ли применена миграция
 const isMigrationApplied = async (version: number): Promise<boolean> => {
     const result = await get('SELECT 1 FROM migrations WHERE version = ?', [version]);
     return !!result;
 };
 
-// Сохраняем информацию о примененной миграции
 const saveMigration = async (version: number, name: string): Promise<void> => {
     await run('INSERT INTO migrations (version, name) VALUES (?, ?)', [version, name]);
 };
 
-// Получаем информацию о колонках таблицы
 const getTableColumns = async (tableName: string): Promise<string[]> => {
     const rows = await all(`PRAGMA table_info(${tableName})`);
     return rows.map((row: any) => row.name);
 };
 
-// Список миграций
 const migrations: Migration[] = [
     {
         version: 1,
@@ -196,13 +191,10 @@ const migrations: Migration[] = [
         version: 6,
         name: 'add_fuel_price_to_trips',
         up: async () => {
-            console.log('  → Checking if fuel_price column exists...');
             const columns = await getTableColumns('trips');
 
             if (!columns.includes('fuel_price')) {
-                console.log('  → Adding fuel_price column to trips table...');
                 await run("ALTER TABLE trips ADD COLUMN fuel_price REAL");
-                console.log('  ✅ fuel_price column added successfully');
             } else {
                 console.log('  → fuel_price column already exists, skipping');
             }
@@ -212,16 +204,11 @@ const migrations: Migration[] = [
         version: 7,
         name: 'add_role_to_users',
         up: async () => {
-            console.log('  → Checking if role column exists in users table...');
             const columns = await getTableColumns('users');
 
             if (!columns.includes('role')) {
-                console.log('  → Adding role column to users table...');
                 await run("ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'user'");
             }
-
-            // Проверяем и создаем/обновляем администратора
-            console.log('  → Setting up admin user...');
             const adminEmail = 'kooooooffe@gmail.com';
             const adminPassword = 'az27AL96darikBL';
 
@@ -229,9 +216,7 @@ const migrations: Migration[] = [
 
             if (existingUser) {
                 await run('UPDATE users SET role = "admin" WHERE email = ?', [adminEmail]);
-                console.log('  ✅ User promoted to admin:', adminEmail);
             } else {
-                // Создаем нового пользователя-администратора
                 const bcrypt = await import('bcryptjs');
                 const hashedPassword = await bcrypt.default.hash(adminPassword, 10);
 
@@ -240,17 +225,12 @@ const migrations: Migration[] = [
                  VALUES (?, ?, 'Administrator', 'admin', datetime('now'))`,
                     [adminEmail, hashedPassword]
                 );
-                console.log('  ✅ Admin user created:', adminEmail);
             }
-
-            console.log('  ✅ Admin setup completed');
         }
     }
 ];
 
-// Запуск миграций
 export const runMigrations = async (): Promise<void> => {
-    console.log('📦 Running database migrations...');
 
     await createMigrationsTable();
 
@@ -262,15 +242,11 @@ export const runMigrations = async (): Promise<void> => {
             try {
                 await migration.up();
                 await saveMigration(migration.version, migration.name);
-                console.log(`  ✅ Migration ${migration.version} completed`);
             } catch (error) {
-                console.error(`  ❌ Migration ${migration.version} failed:`, error);
                 throw error;
             }
         } else {
             console.log(`  ⏭ Skipping migration ${migration.version} (already applied)`);
         }
     }
-
-    console.log('✅ All migrations completed successfully');
 };

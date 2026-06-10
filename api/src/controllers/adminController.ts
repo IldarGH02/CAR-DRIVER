@@ -34,7 +34,6 @@ export const adminController = {
         try {
             const users = await UserModel.findAll();
 
-            // Добавляем статического админа в список, если его нет
             const hasStaticAdmin = users.some((u: any) => u.id === 0);
             if (!hasStaticAdmin) {
                 const staticAdmin = {
@@ -52,7 +51,6 @@ export const adminController = {
 
             return reply.send({ success: true, users });
         } catch (error) {
-            console.error('Get users error:', error);
             reply.code(500).send({ success: false, message: 'Internal server error' });
         }
     },
@@ -60,9 +58,7 @@ export const adminController = {
     getUserById: async (request: FastifyRequest<{ Params: Params }>, reply: FastifyReply) => {
         try {
             const id = parseInt(request.params.id);
-            console.log(`📋 Getting user by id: ${id}`);
 
-            // Сначала проверяем статического админа
             if (id === 0) {
                 return reply.send({
                     success: true,
@@ -90,7 +86,6 @@ export const adminController = {
                 user
             });
         } catch (error) {
-            console.error('❌ Get user error:', error);
             reply.code(500).send({ success: false, message: 'Internal server error' });
         }
     },
@@ -100,9 +95,6 @@ export const adminController = {
             const id = parseInt(request.params.id);
             const { name, role, car_model, car_year, license_plate } = request.body;
 
-            console.log(`📝 Updating user ${id}:`, { name, role, car_model, car_year, license_plate });
-
-            // Запрещаем обновление статического админа
             if (id === 0) {
                 return reply.code(403).send({
                     success: false,
@@ -123,7 +115,6 @@ export const adminController = {
                 user: updatedUser
             });
         } catch (error) {
-            console.error('❌ Update user error:', error);
             reply.code(500).send({ success: false, message: 'Internal server error' });
         }
     },
@@ -131,9 +122,7 @@ export const adminController = {
     deleteUser: async (request: FastifyRequest<{ Params: Params }>, reply: FastifyReply) => {
         try {
             const id = parseInt(request.params.id);
-            console.log(`🗑️ Deleting user: ${id}`);
 
-            // Запрещаем удаление статического админа
             if (id === 0) {
                 return reply.code(403).send({
                     success: false,
@@ -153,15 +142,12 @@ export const adminController = {
                 message: 'User deleted successfully'
             });
         } catch (error) {
-            console.error('❌ Delete user error:', error);
             reply.code(500).send({ success: false, message: 'Internal server error' });
         }
     },
 
     getStats: async (request: FastifyRequest, reply: FastifyReply) => {
         try {
-            console.log('📊 Getting stats...');
-
             const totalUsers = await all('SELECT COUNT(*) as count FROM users');
             const totalTrips = await all('SELECT COUNT(*) as count FROM trips');
 
@@ -182,7 +168,6 @@ export const adminController = {
                 }
             });
         } catch (error) {
-            console.error('❌ Get stats error:', error);
             reply.code(500).send({ success: false, message: 'Internal server error' });
         }
     },
@@ -201,7 +186,6 @@ export const adminController = {
 
             return reply.send({ success: true, trips });
         } catch (error) {
-            console.error('Get user trips error:', error);
             reply.code(500).send({ success: false, message: 'Internal server error' });
         }
     },
@@ -235,7 +219,6 @@ export const adminController = {
 
             return reply.send({ success: true, trip: newTrip });
         } catch (error) {
-            console.error('Add user trip error:', error);
             reply.code(500).send({ success: false, message: 'Internal server error' });
         }
     },
@@ -253,7 +236,6 @@ export const adminController = {
             await TripModel.delete(tripId, userId);
             return reply.send({ success: true, message: 'Trip deleted successfully' });
         } catch (error) {
-            console.error('Delete user trip error:', error);
             reply.code(500).send({ success: false, message: 'Internal server error' });
         }
     },
@@ -287,7 +269,6 @@ export const adminController = {
 
             return reply.send({ success: true, report });
         } catch (error) {
-            console.error('Generate report error:', error);
             reply.code(500).send({ success: false, message: 'Internal server error' });
         }
     },
@@ -300,23 +281,19 @@ export const adminController = {
                 return reply.code(400).send({ success: false, message: 'All fields are required' });
             }
 
-            // Проверяем, не существует ли пользователь
             const existingUser = await UserModel.findByEmail(email);
             if (existingUser) {
                 return reply.code(400).send({ success: false, message: 'Email already exists' });
             }
 
-            // Создаем пользователя
             const user = await UserModel.create(email, password, name);
 
-            // Обновляем роль если нужно
             if (role && role === 'admin') {
                 await UserModel.update(user.id, { role: 'admin' });
             }
 
             return reply.send({ success: true, message: 'User created successfully', user });
         } catch (error) {
-            console.error('Create user error:', error);
             reply.code(500).send({ success: false, message: 'Internal server error' });
         }
     }

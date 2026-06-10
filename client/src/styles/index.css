@@ -4,7 +4,6 @@
 
 /* ========== CSS ПЕРЕМЕННЫЕ ДЛЯ ТЕМ ========== */
 :root {
-    /* Light theme (по умолчанию) */
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
@@ -26,7 +25,6 @@
     --ring: 221.2 83.2% 53.3%;
     --radius: 0.5rem;
 
-    /* Sidebar light */
     --sidebar: 222 47% 11%;
     --sidebar-foreground: 210 40% 98%;
     --sidebar-primary: 217.2 91.2% 59.8%;
@@ -34,10 +32,8 @@
     --sidebar-accent: 217.2 32.6% 17.5%;
     --sidebar-accent-foreground: 210 40% 98%;
     --sidebar-border: 217.2 32.6% 17.5%;
-    --sidebar-ring: 224.3 76.3% 48%;
 }
 
-/* Dark theme */
 .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
@@ -58,15 +54,6 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 224.3 76.3% 48%;
-
-    /* Sidebar dark */
-    --sidebar: 222 47% 11%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 217.2 91.2% 59.8%;
-    --sidebar-primary-foreground: 222 47% 11%;
-    --sidebar-accent: 217.2 32.6% 17.5%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 217.2 32.6% 17.5%;
 }
 
 ::-webkit-scrollbar {
@@ -75,17 +62,17 @@
 }
 
 ::-webkit-scrollbar-track {
-    background: hsl(var(--muted));
+    background: var(--muted);
     border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb {
-    background: hsl(var(--muted-foreground));
+    background: var(--muted-foreground);
     border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--primary));
+    background: var(--primary);
 }
 
 /* Плавный скролл */
@@ -96,14 +83,12 @@ html {
 /* Запрещаем скролл body, разрешаем только контейнерам */
 body {
     overflow: hidden;
-    background: hsl(var(--background));
-    color: hsl(var(--foreground));
 }
 
 /* Для Firefox */
 * {
     scrollbar-width: thin;
-    scrollbar-color: hsl(var(--muted-foreground)) hsl(var(--muted));
+    scrollbar-color: var(--muted-foreground) var(--muted);
 }
 
 /* Адаптивные утилиты */
@@ -314,8 +299,6 @@ body {
 aside {
     overflow-x: hidden;
     overflow-y: auto;
-    background: hsl(var(--sidebar));
-    border-color: hsl(var(--sidebar-border));
 }
 
 /* Обрезаем длинные тексты в меню */
@@ -388,35 +371,8 @@ body {
     transform: translateY(-50%);
     width: 3px;
     height: 60%;
-    background: hsl(var(--primary));
+    background: var(--primary);
     border-radius: 0 2px 2px 0;
-}
-
-/* Кнопка переключения темы */
-.theme-toggle {
-    transition: all 0.3s ease;
-}
-
-.theme-toggle:hover {
-    transform: rotate(15deg);
-}
-
-/* Адаптация для темной темы - улучшение контрастности */
-.dark .bg-white,
-.dark .bg-gray-50,
-.dark .bg-gray-100 {
-    background-color: hsl(var(--card));
-}
-
-.dark .text-gray-600,
-.dark .text-gray-700,
-.dark .text-gray-800 {
-    color: hsl(var(--card-foreground));
-}
-
-.dark .border-gray-200,
-.dark .border-gray-300 {
-    border-color: hsl(var(--border));
 }
 
 /* Сглаживание анимаций */

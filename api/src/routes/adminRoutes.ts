@@ -12,6 +12,7 @@ export default async function adminRoutes(fastify: FastifyInstance) {
     fastify.get('/users/:id', adminController.getUserById);
     fastify.put('/users/:id', adminController.updateUser);
     fastify.delete('/users/:id', adminController.deleteUser);
+    fastify.post('/users', adminController.createUser);
 
     // Статистика
     fastify.get('/stats', adminController.getStats);

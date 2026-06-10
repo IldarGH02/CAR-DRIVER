@@ -1,6 +1,7 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { UserModel } from '../models/User';
 import { all } from '../config/database';
+import {TripModel} from "../models/Trip";
 
 interface UpdateUserBody {
     name?: string;
@@ -15,15 +16,12 @@ interface Params {
 }
 
 export const adminController = {
-    // Получить всех пользователей
     getUsers: async (request: FastifyRequest, reply: FastifyReply) => {
         try {
             console.log('📋 Getting all users...');
 
-            // Получаем пользователей из БД
             const dbUsers = await all('SELECT id, email, name, role, car_model, car_year, license_plate, created_at FROM users ORDER BY id DESC');
 
-            // Добавляем статического админа, если его нет в БД
             const hasStaticAdmin = dbUsers.some((u: any) => u.id === 0);
             let users = dbUsers;
 
@@ -57,7 +55,6 @@ export const adminController = {
         }
     },
 
-    // Получить пользователя по ID
     getUserById: async (request: FastifyRequest<{ Params: Params }>, reply: FastifyReply) => {
         try {
             const id = parseInt(request.params.id);
@@ -96,7 +93,6 @@ export const adminController = {
         }
     },
 
-    // Обновить пользователя
     updateUser: async (request: FastifyRequest<{ Params: Params; Body: UpdateUserBody }>, reply: FastifyReply) => {
         try {
             const id = parseInt(request.params.id);
@@ -130,7 +126,6 @@ export const adminController = {
         }
     },
 
-    // Удалить пользователя
     deleteUser: async (request: FastifyRequest<{ Params: Params }>, reply: FastifyReply) => {
         try {
             const id = parseInt(request.params.id);
@@ -161,7 +156,6 @@ export const adminController = {
         }
     },
 
-    // Получить статистику
     getStats: async (request: FastifyRequest, reply: FastifyReply) => {
         try {
             console.log('📊 Getting stats...');
@@ -189,6 +183,54 @@ export const adminController = {
             });
         } catch (error) {
             console.error('❌ Get stats error:', error);
+            reply.code(500).send({ success: false, message: 'Internal server error' });
+        }
+    },
+
+    getUserTrips: async (request: FastifyRequest<{ Params: { id: string }, Querystring: { dateFrom?: string; dateTo?: string } }>, reply: FastifyReply) => {
+        try {
+            const userId = parseInt(request.params.id);
+            const { dateFrom, dateTo } = request.query;
+
+            const user = await UserModel.findById(userId);
+            if (!user) {
+                return reply.code(404).send({ success: false, message: 'User not found' });
+            }
+
+            const trips = await TripModel.findAllByUserId(userId, dateFrom, dateTo);
+
+            return reply.send({ success: true, trips });
+        } catch (error) {
+            console.error('Get user trips error:', error);
+            reply.code(500).send({ success: false, message: 'Internal server error' });
+        }
+    },
+
+    createUser: async (request: FastifyRequest<{ Body: { email: string; password: string; name: string; role: string } }>, reply: FastifyReply) => {
+        try {
+            const { email, password, name, role } = request.body;
+
+            if (!email || !password || !name) {
+                return reply.code(400).send({ success: false, message: 'All fields are required' });
+            }
+
+            // Проверяем, не существует ли пользователь
+            const existingUser = await UserModel.findByEmail(email);
+            if (existingUser) {
+                return reply.code(400).send({ success: false, message: 'Email already exists' });
+            }
+
+            // Создаем пользователя
+            const user = await UserModel.create(email, password, name);
+
+            // Обновляем роль если нужно
+            if (role && role === 'admin') {
+                await UserModel.update(user.id, { role: 'admin' });
+            }
+
+            return reply.send({ success: true, message: 'User created successfully', user });
+        } catch (error) {
+            console.error('Create user error:', error);
             reply.code(500).send({ success: false, message: 'Internal server error' });
         }
     }

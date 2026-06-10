@@ -57,53 +57,28 @@ export interface CreateTripInput {
     status?: string;
 }
 
-
-const DEMO_TRIPS: TripWithFromTo[] = [
-    {
-        id: 1,
-        date: new Date().toISOString().split('T')[0],
-        from: 'Москва',
-        to: 'Санкт-Петербург',
-        distance: 705,
-        fuelAmount: 45,
-        fuelCost: 2250,
-        amortization: 188,
-        purpose: 'Рабочая поездка',
-        expenseLine: 'Транспорт',
-        avgConsumption: 6.4,
-        status: 'completed',
-        createdAt: new Date().toISOString()
-    },
-    {
-        id: 2,
-        date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        from: 'Казань',
-        to: 'Нижний Новгород',
-        distance: 400,
-        fuelAmount: 28,
-        fuelCost: 1400,
-        amortization: 107,
-        purpose: 'Личная поездка',
-        expenseLine: 'Транспорт',
-        avgConsumption: 7.0,
-        status: 'completed',
-        createdAt: new Date().toISOString()
-    }
-];
-
 export const TripModel = {
-    findAllByUserId: async (userId: number): Promise<TripWithFromTo[]> => {
-        if (userId === 0) {
-            return DEMO_TRIPS;
+    findAllByUserId: async (userId: number, dateFrom?: string, dateTo?: string): Promise<TripWithFromTo[]> => {
+        let sql = `
+        SELECT id, date, from_city, to_city, distance,
+             fuel_amount, fuel_cost, amortization, purpose, expense_line, avg_consumption, status,
+             created_at
+        FROM trips WHERE user_id = ?
+    `;
+        const params: any[] = [userId];
+
+        if (dateFrom) {
+            sql += ` AND date >= ?`;
+            params.push(dateFrom);
+        }
+        if (dateTo) {
+            sql += ` AND date <= ?`;
+            params.push(dateTo);
         }
 
-        const trips = await all(
-            `SELECT id, date, from_city, to_city, distance,
-                 fuel_amount, fuel_cost, amortization, purpose, expense_line, avg_consumption, status,
-                 created_at
-             FROM trips WHERE user_id = ? ORDER BY date DESC`,
-            [userId]
-        );
+        sql += ` ORDER BY date DESC`;
+
+        const trips = await all(sql, params);
 
         return trips.map((trip: any) => ({
             id: trip.id,
@@ -123,53 +98,10 @@ export const TripModel = {
     },
 
     findById: async (id: number, userId: number): Promise<Trip | undefined> => {
-        if (userId === 0) {
-            const demoTrip = DEMO_TRIPS.find(t => t.id === id);
-            if (demoTrip) {
-                return {
-                    id: demoTrip.id,
-                    user_id: 0,
-                    date: demoTrip.date,
-                    from_city: demoTrip.from,
-                    to_city: demoTrip.to,
-                    distance: demoTrip.distance,
-                    fuel_amount: demoTrip.fuelAmount,
-                    fuel_cost: demoTrip.fuelCost,
-                    amortization: demoTrip.amortization,
-                    purpose: demoTrip.purpose,
-                    expense_line: demoTrip.expenseLine,
-                    avg_consumption: demoTrip.avgConsumption,
-                    status: demoTrip.status,
-                    created_at: demoTrip.createdAt
-                };
-            }
-            return undefined;
-        }
-
         return await get('SELECT * FROM trips WHERE id = ? AND user_id = ?', [id, userId]);
     },
 
     create: async (data: CreateTripInput): Promise<TripWithFromTo> => {
-        if (data.userId === 0) {
-            const newTrip: TripWithFromTo = {
-                id: DEMO_TRIPS.length + 1,
-                date: data.date,
-                from: data.from,
-                to: data.to,
-                distance: data.distance,
-                fuelAmount: data.fuelAmount,
-                fuelCost: data.fuelCost,
-                amortization: data.amortization,
-                purpose: data.purpose,
-                expenseLine: data.expenseLine,
-                avgConsumption: data.avgConsumption,
-                status: data.status || 'completed',
-                createdAt: new Date().toISOString()
-            };
-            DEMO_TRIPS.push(newTrip);
-            return newTrip;
-        }
-
         const result = await run(
             `INSERT INTO trips (user_id, date, from_city, to_city, distance, fuel_amount, fuel_cost, amortization, purpose, expense_line, avg_consumption, status)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -207,14 +139,6 @@ export const TripModel = {
     },
 
     update: async (id: number, userId: number, data: Partial<CreateTripInput>): Promise<void> => {
-        if (userId === 0) {
-            const tripIndex = DEMO_TRIPS.findIndex(t => t.id === id);
-            if (tripIndex !== -1) {
-                DEMO_TRIPS[tripIndex] = { ...DEMO_TRIPS[tripIndex], ...data as any };
-            }
-            return;
-        }
-
         const fields: string[] = [];
         const values: any[] = [];
 
@@ -271,46 +195,10 @@ export const TripModel = {
     },
 
     delete: async (id: number, userId: number): Promise<void> => {
-        if (userId === 0) {
-            const tripIndex = DEMO_TRIPS.findIndex(t => t.id === id);
-            if (tripIndex !== -1) {
-                DEMO_TRIPS.splice(tripIndex, 1);
-            }
-            return;
-        }
-
         await run('DELETE FROM trips WHERE id = ? AND user_id = ?', [id, userId]);
     },
 
     getStats: async (userId: number, dateFrom?: string, dateTo?: string): Promise<TripStats> => {
-        if (userId === 0) {
-            let filteredTrips = [...DEMO_TRIPS];
-
-            if (dateFrom) {
-                filteredTrips = filteredTrips.filter(t => t.date >= dateFrom);
-            }
-            if (dateTo) {
-                filteredTrips = filteredTrips.filter(t => t.date <= dateTo);
-            }
-
-            const totalTrips = filteredTrips.length;
-            const totalDistance = filteredTrips.reduce((sum, t) => sum + t.distance, 0);
-            const totalFuelCost = filteredTrips.reduce((sum, t) => sum + t.fuelCost, 0);
-            const totalAmortization = filteredTrips.reduce((sum, t) => sum + t.amortization, 0);
-            const avgFuelConsumption = filteredTrips.length > 0
-                ? parseFloat((filteredTrips.reduce((sum, t) => sum + (t.avgConsumption || 0), 0) / filteredTrips.length).toFixed(1))
-                : 0;
-
-            return {
-                totalTrips,
-                totalDistance,
-                totalFuelCost,
-                totalAmortization,
-                totalExpenses: totalFuelCost + totalAmortization,
-                averageFuelConsumption: avgFuelConsumption
-            };
-        }
-
         let query = `
             SELECT
                 COUNT(*) as totalTrips,

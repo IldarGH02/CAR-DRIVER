@@ -9,7 +9,7 @@ export interface User {
     createdAt?: string;
 }
 
-interface Trip {
+export interface Trip {
     id: number;
     date: string;
     from: string;

@@ -75,7 +75,8 @@ export function Admin() {
         try {
             const response = await api.get('/admin/users');
             if (response.data.success) {
-                setUsers(response.data.users);
+                const filteredUsers = response.data.users.filter((u: User) => u.id !== 0);
+                setUsers(filteredUsers);
                 const admins = response.data.users.filter((u: User) => u.role === 'admin').length;
                 const regularUsers = response.data.users.filter((u: User) => u.role !== 'admin').length;
                 setStats({

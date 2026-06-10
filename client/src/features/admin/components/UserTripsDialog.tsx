@@ -4,7 +4,7 @@ import { Button } from '@shared/ui/button';
 import { Input } from '@shared/ui/input';
 import { Label } from '@shared/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@shared/ui/table';
-import { Trash2, Plus } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import { User, Trip } from '../types';
 import { TripAddDialog } from './TripAddDialog';
 
@@ -43,7 +43,7 @@ export const UserTripsDialog = ({
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="w-[95vw] max-w-5xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="w-[95vw] max-w-5xl max-h-[90vh] overflow-y-auto" aria-describedby="trips-dialog-description">
                 <DialogHeader>
                     <DialogTitle className="text-lg sm:text-xl">Поездки пользователя: {user.name}</DialogTitle>
                 </DialogHeader>

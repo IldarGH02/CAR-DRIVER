@@ -17,6 +17,7 @@ interface SettingsState {
     error: string | null;
     fetchSettings: () => Promise<void>;
     updateSettings: (data: Partial<Settings>) => Promise<void>;
+    forceReload: () => Promise<void>;
 }
 
 export const useSettingsStore = create<SettingsState>((set, get) => ({
@@ -29,7 +30,9 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         try {
             const response = await api.get('/settings');
             console.log('fetchSettings response:', response.data);
-            set({ settings: response.data.settings });
+            if (response.data.success) {
+                set({ settings: response.data.settings });
+            }
         } catch (error: any) {
             console.error('Fetch settings error:', error);
             set({ error: error.message });
@@ -47,11 +50,30 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
 
             if (response.data.success) {
                 set({ settings: response.data.settings });
+                // Дополнительно сохраняем в localStorage
+                localStorage.setItem('user_settings_backup', JSON.stringify(response.data.settings));
+                return response.data.settings;
             }
         } catch (error: any) {
             console.error('Update settings error:', error);
             set({ error: error.message });
             throw error;
+        } finally {
+            set({ isLoading: false });
+        }
+    },
+
+    forceReload: async () => {
+        set({ isLoading: true });
+        try {
+            // Добавляем timestamp для отключения кэша
+            const response = await api.get('/settings?_t=' + Date.now());
+            console.log('forceReload response:', response.data);
+            if (response.data.success) {
+                set({ settings: response.data.settings });
+            }
+        } catch (error: any) {
+            console.error('Force reload error:', error);
         } finally {
             set({ isLoading: false });
         }

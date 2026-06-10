@@ -8,7 +8,7 @@ import { api } from '@shared/api/axiosInstance';
 export const useSettings = () => {
     const { user, updateUser } = useUserStore();
     const { theme, setTheme } = useThemeStore();
-    const { settings, fetchSettings, updateSettings } = useSettingsStore();
+    const { settings, fetchSettings, updateSettings, forceReload } = useSettingsStore();
 
     const [profileData, setProfileData] = useState({
         name: '',
@@ -26,6 +26,29 @@ export const useSettings = () => {
     const [autoSave, setAutoSave] = useState(true);
     const [isLoading, setIsLoading] = useState(false);
 
+    // Загрузка из localStorage при инициализации
+    useEffect(() => {
+        const savedSettings = localStorage.getItem('user_settings_backup');
+        if (savedSettings) {
+            try {
+                const parsed = JSON.parse(savedSettings);
+                console.log('Loaded from localStorage backup:', parsed);
+                if (parsed.amortization_rate) {
+                    setAmortizationRate(String(parsed.amortization_rate));
+                }
+            } catch (e) {}
+        }
+    }, []);
+
+    const loadSettings = async () => {
+        try {
+            console.log('Loading settings from server...');
+            await fetchSettings();
+        } catch (error) {
+            console.error('Failed to load settings:', error);
+        }
+    };
+
     useEffect(() => {
         if (user) {
             setProfileData({
@@ -41,28 +64,24 @@ export const useSettings = () => {
 
     useEffect(() => {
         if (settings) {
+            console.log('Settings loaded from server:', settings);
             setCurrency(settings.currency || 'RUB');
             setDistanceUnit(settings.distance_unit || 'km');
             setFuelUnit(settings.fuel_unit || 'liters');
             const rate = settings.amortization_rate;
+            console.log('Amortization rate from server:', rate);
             setAmortizationRate(rate !== undefined && rate !== null ? String(rate) : '2.68');
-            // Исправлено: преобразуем number в boolean
             setNotifications(settings.notifications === 1);
             setAutoSave(settings.auto_save === 1);
         }
     }, [settings]);
 
-    const loadSettings = async () => {
-        try {
-            await fetchSettings();
-        } catch (error) {
-            console.error('Failed to load settings:', error);
-        }
-    };
-
     const handleSaveSettings = async () => {
         setIsLoading(true);
         try {
+            console.log('=== SAVING SETTINGS ===');
+            console.log('amortizationRate before save:', amortizationRate);
+
             if (user && user.id !== 0) {
                 await api.put('/settings/profile', {
                     name: profileData.name,
@@ -73,14 +92,24 @@ export const useSettings = () => {
                 updateUser(profileData);
             }
 
+            const rateToSave = Number(amortizationRate);
+            console.log('Saving amortization_rate as:', rateToSave);
+
             await updateSettings({
                 currency,
                 distance_unit: distanceUnit,
                 fuel_unit: fuelUnit,
-                amortization_rate: Number(amortizationRate),
+                amortization_rate: rateToSave,
                 notifications: notifications ? 1 : 0,
                 auto_save: autoSave ? 1 : 0
             });
+
+            // Принудительно перезагружаем после сохранения
+            setTimeout(async () => {
+                console.log('Force reloading settings...');
+                await forceReload();
+                console.log('After forceReload, amortization_rate:', useSettingsStore.getState().settings?.amortization_rate);
+            }, 500);
 
             toast.success('Настройки сохранены');
         } catch (error: any) {

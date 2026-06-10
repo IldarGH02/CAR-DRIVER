@@ -9,6 +9,8 @@ const getBaseURL = () => {
 
 const API_URL = getBaseURL();
 
+console.log('API URL:', API_URL);
+
 export const api = axios.create({
     baseURL: API_URL,
     headers: {
@@ -22,11 +24,23 @@ api.interceptors.request.use((config) => {
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
     }
+
+    if (config.method === 'get') {
+        config.params = {
+            ...config.params,
+            _t: Date.now()
+        };
+    }
+
+    console.log(`📤 ${config.method?.toUpperCase()} ${config.url}`);
     return config;
 });
 
 api.interceptors.response.use(
-    (response) => response,
+    (response) => {
+        console.log(`📥 ${response.config.method?.toUpperCase()} ${response.config.url} - ${response.status}`);
+        return response;
+    },
     async (error) => {
         console.error('Axios response error:', {
             status: error.response?.status,

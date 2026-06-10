@@ -1,6 +1,5 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { UserModel } from '../models/User';
-import { adminConfig } from '../config/adminConfig';
 
 export const adminAuth = async (request: FastifyRequest, reply: FastifyReply) => {
     try {
@@ -11,10 +10,6 @@ export const adminAuth = async (request: FastifyRequest, reply: FastifyReply) =>
             return;
         }
 
-        if (userData.email === adminConfig.email && userData.id === 0) {
-            return;
-        }
-
         const user = await UserModel.findById(userData.id);
 
         if (!user || user.role !== 'admin') {
@@ -22,6 +17,7 @@ export const adminAuth = async (request: FastifyRequest, reply: FastifyReply) =>
             return;
         }
     } catch (err) {
+        console.error('adminAuth error:', err);
         reply.code(401).send({ success: false, message: 'Unauthorized' });
     }
 };

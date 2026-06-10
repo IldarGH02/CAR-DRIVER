@@ -80,7 +80,9 @@ export const RegisterForm = ({ onSuccess, onSwitchToLogin }: RegisterFormProps) 
     const handleVerificationSuccess = () => {
         console.log('🎉 Verification and login success!');
         toast.success('Добро пожаловать!');
-        navigate('/')
+
+        onSuccess(registeredEmail);
+        onSwitchToLogin();
     };
 
     if (showVerification) {

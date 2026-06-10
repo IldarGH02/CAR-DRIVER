@@ -1,9 +1,19 @@
 import { api } from '@shared/api/axiosInstance';
+import { useUserStore } from '@entities/user/model/userStore';
 
 export const authApi = {
     login: async (email: string, password: string) => {
         try {
             const response = await api.post('/auth/login', { email, password });
+
+            if (response.data.success && response.data.token && response.data.user) {
+                // Сохраняем токен и пользователя
+                localStorage.setItem('token', response.data.token);
+                // Обновляем стор
+                useUserStore.getState().setUser(response.data.user);
+                useUserStore.getState().setIsAuthenticated(true);
+            }
+
             return response.data;
         } catch (error: any) {
             return {
@@ -16,6 +26,14 @@ export const authApi = {
     register: async (email: string, password: string, name: string) => {
         try {
             const response = await api.post('/auth/register', { email, password, name });
+
+            if (response.data.success && response.data.token && response.data.user) {
+                // Сохраняем токен и пользователя
+                localStorage.setItem('token', response.data.token);
+                useUserStore.getState().setUser(response.data.user);
+                useUserStore.getState().setIsAuthenticated(true);
+            }
+
             return response.data;
         } catch (error: any) {
             return {
@@ -25,7 +43,6 @@ export const authApi = {
         }
     },
 
-    // ✅ Добавляем отправку кода верификации
     sendVerificationCode: async (email: string) => {
         try {
             const response = await api.post('/auth/send-code', { email });
@@ -43,7 +60,15 @@ export const authApi = {
         try {
             const response = await api.post('/auth/verify-code', { email, code });
             console.log('✅ Verify code response:', response.data);
-            return response.data; // Теперь возвращает { success, token, user }
+
+            if (response.data.success && response.data.token && response.data.user) {
+                // Сохраняем токен и пользователя
+                localStorage.setItem('token', response.data.token);
+                useUserStore.getState().setUser(response.data.user);
+                useUserStore.getState().setIsAuthenticated(true);
+            }
+
+            return response.data;
         } catch (error: any) {
             console.error('❌ Verify code error:', error.response?.data);
             return {

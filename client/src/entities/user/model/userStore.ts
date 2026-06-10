@@ -32,10 +32,12 @@ export const useUserStore = create<UserState>()(
             isLoading: false,
 
             setUser: (user) => {
+                console.log('setUser called:', user);
                 set({ user, isAuthenticated: !!user });
             },
 
             setIsAuthenticated: (isAuthenticated) => {
+                console.log('setIsAuthenticated called:', isAuthenticated);
                 set({ isAuthenticated });
             },
 
@@ -46,16 +48,18 @@ export const useUserStore = create<UserState>()(
             })),
 
             logout: () => {
+                console.log('logout called');
                 localStorage.removeItem('token');
                 set({ user: null, isAuthenticated: false });
             },
 
             fetchUser: async () => {
-                // Если уже есть пользователь и он не истек, не делаем запрос
+                // НЕ вызываем fetchUser если уже есть пользователь
                 const currentUser = get().user;
-                if (currentUser && currentUser.id !== undefined) {
-                    console.log('User already loaded, skipping fetch');
-                    set({ isLoading: false });
+                const currentAuth = get().isAuthenticated;
+
+                if (currentUser && currentAuth) {
+                    console.log('User already loaded, skipping fetchUser');
                     return;
                 }
 
@@ -78,17 +82,10 @@ export const useUserStore = create<UserState>()(
                             },
                             isAuthenticated: true
                         });
-                    } else {
-                        // Если ответ неуспешный, не сбрасываем пользователя
-                        console.log('Fetch user failed, keeping existing user');
                     }
-                } catch (error: any) {
-                    console.error('Fetch user error:', error.response?.status, error.response?.data);
-                    // Не сбрасываем пользователя при ошибке, если он уже есть
-                    const existingUser = get().user;
-                    if (!existingUser) {
-                        set({ user: null, isAuthenticated: false });
-                    }
+                } catch (error) {
+                    console.error('Fetch user error:', error);
+                    // Не сбрасываем пользователя при ошибке
                 } finally {
                     set({ isLoading: false });
                 }

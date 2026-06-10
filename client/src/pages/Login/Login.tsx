@@ -16,6 +16,16 @@ export function Login() {
         }
     }, [isAuthenticated, navigate]);
 
+    const handleRegisterSuccess = (email: string) => {
+        console.log('Registration success for:', email);
+        // После успешной регистрации переключаемся на форму входа
+        setIsLogin(true);
+    };
+
+    const handleSwitchToLogin = () => {
+        setIsLogin(true);
+    };
+
     return (
         <div className="h-screen flex items-center justify-center bg-background">
             <div className="w-full max-w-md p-8">
@@ -31,7 +41,14 @@ export function Login() {
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        {isLogin ? <LoginForm /> : <RegisterForm />}
+                        {isLogin ? (
+                            <LoginForm />
+                        ) : (
+                            <RegisterForm
+                                onSuccess={handleRegisterSuccess}
+                                onSwitchToLogin={handleSwitchToLogin}
+                            />
+                        )}
 
                         <div className="mt-6 text-center">
                             <button

@@ -86,7 +86,6 @@ export function Admin() {
                 });
             }
         } catch (error) {
-            console.error('Failed to fetch users:', error);
             toast.error('Ошибка загрузки пользователей');
         } finally {
             setIsLoading(false);

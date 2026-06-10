@@ -51,7 +51,7 @@ interface EditUser {
 }
 
 export function Admin() {
-    const { user: currentUser } = useUserStoreData();
+    const { user: currentUser, isLoading: isUserLoading } = useUserStoreData();
     const [users, setUsers] = useState<User[]>([]);
     const [stats, setStats] = useState({ totalUsers: 0, totalAdmins: 0, totalRegularUsers: 0 });
     const [isLoading, setIsLoading] = useState(false);
@@ -63,12 +63,6 @@ export function Admin() {
     const [tripsDateFrom, setTripsDateFrom] = useState('');
     const [tripsDateTo, setTripsDateTo] = useState('');
     const [isTripsLoading, setIsTripsLoading] = useState(false);
-
-    useEffect(() => {
-        if (currentUser?.role === 'admin') {
-            fetchUsers();
-        }
-    }, [currentUser]);
 
     const fetchUsers = async () => {
         setIsLoading(true);
@@ -86,6 +80,7 @@ export function Admin() {
                 });
             }
         } catch (error) {
+            console.error('Failed to fetch users:', error);
             toast.error('Ошибка загрузки пользователей');
         } finally {
             setIsLoading(false);
@@ -228,7 +223,43 @@ export function Admin() {
         }
     };
 
-    if (currentUser?.role !== 'admin') {
+    // Загружаем пользователей при монтировании
+    useEffect(() => {
+        fetchUsers();
+    }, []);
+
+    // Проверка загрузки пользователя
+    if (isUserLoading) {
+        return (
+            <div className="flex-1 flex items-center justify-center bg-background p-4">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                    <p className="text-muted-foreground">Загрузка...</p>
+                </div>
+            </div>
+        );
+    }
+
+    // Проверка авторизации
+    if (!currentUser) {
+        return (
+            <div className="flex-1 flex items-center justify-center bg-background p-4">
+                <Card className="max-w-md w-full">
+                    <CardHeader>
+                        <CardTitle className="text-xl sm:text-2xl">Не авторизован</CardTitle>
+                        <CardDescription>
+                            Пожалуйста, войдите в систему для доступа к этой странице.
+                        </CardDescription>
+                    </CardHeader>
+                </Card>
+            </div>
+        );
+    }
+
+    // Проверка прав администратора (статический админ id=0 или роль admin)
+    const isAdmin = currentUser.role === 'admin' || currentUser.id === 0;
+
+    if (!isAdmin) {
         return (
             <div className="flex-1 flex items-center justify-center bg-background p-4">
                 <Card className="max-w-md w-full">
@@ -273,7 +304,10 @@ export function Admin() {
                     </CardHeader>
                     <CardContent className="p-4 sm:p-6 pt-0">
                         {isLoading ? (
-                            <div className="text-center py-8">Загрузка...</div>
+                            <div className="text-center py-8">
+                                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto mb-2"></div>
+                                <p className="text-muted-foreground">Загрузка пользователей...</p>
+                            </div>
                         ) : users.length === 0 ? (
                             <div className="text-center py-8 text-muted-foreground">
                                 Нет пользователей

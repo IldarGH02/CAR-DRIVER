@@ -40,42 +40,41 @@ export const SettingsModel = {
     },
 
     updateSettings: async (userId: number, data: any) => {
-        const fields: string[] = [];
-        const values: any[] = [];
+        console.log('=== SettingsModel.updateSettings ===');
+        console.log('Input data:', data);
 
+        const existing = await SettingsModel.findByUserId(userId);
+        console.log('Existing settings:', existing);
+
+        if (!existing) {
+            await SettingsModel.createSettings(userId);
+        }
+
+        if (data.amortization_rate !== undefined) {
+            const rate = Number(data.amortization_rate);
+            console.log(`Updating amortization_rate to ${rate} for user ${userId}`);
+            await run('UPDATE settings SET amortization_rate = ? WHERE user_id = ?', [rate, userId]);
+        }
         if (data.currency !== undefined) {
-            fields.push('currency = ?');
-            values.push(data.currency);
+            await run('UPDATE settings SET currency = ? WHERE user_id = ?', [data.currency, userId]);
         }
         if (data.distance_unit !== undefined) {
-            fields.push('distance_unit = ?');
-            values.push(data.distance_unit);
+            await run('UPDATE settings SET distance_unit = ? WHERE user_id = ?', [data.distance_unit, userId]);
         }
         if (data.fuel_unit !== undefined) {
-            fields.push('fuel_unit = ?');
-            values.push(data.fuel_unit);
-        }
-        if (data.amortization_rate !== undefined) {
-            fields.push('amortization_rate = ?');
-            values.push(Number(data.amortization_rate)); // ← явно преобразуем в число
+            await run('UPDATE settings SET fuel_unit = ? WHERE user_id = ?', [data.fuel_unit, userId]);
         }
         if (data.notifications !== undefined) {
-            fields.push('notifications = ?');
-            values.push(data.notifications ? 1 : 0);
+            await run('UPDATE settings SET notifications = ? WHERE user_id = ?', [data.notifications ? 1 : 0, userId]);
         }
         if (data.auto_save !== undefined) {
-            fields.push('auto_save = ?');
-            values.push(data.auto_save ? 1 : 0);
+            await run('UPDATE settings SET auto_save = ? WHERE user_id = ?', [data.auto_save ? 1 : 0, userId]);
         }
 
-        if (fields.length === 0) return;
+        const updated = await SettingsModel.findByUserId(userId);
+        console.log('After update, settings in DB:', updated);
 
-        values.push(userId);
-        const query = `UPDATE settings SET ${fields.join(', ')} WHERE user_id = ?`;
-        console.log('SQL Query:', query);
-        console.log('SQL Values:', values);
-
-        await run(query, values);
+        return updated;
     },
 
     update: async (userId: number, data: any) => {

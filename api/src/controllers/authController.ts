@@ -118,7 +118,8 @@ export const authController = {
                 });
             }
 
-             const user = await UserModel.findById(userData.id);
+            // Ищем пользователя в БД (включая статического админа)
+            const user = await UserModel.findById(userData.id);
 
             console.log('getMe - user from DB:', user);
 

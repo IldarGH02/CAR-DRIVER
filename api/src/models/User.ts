@@ -36,8 +36,19 @@ export const UserModel = {
     },
 
     findById: async (id: number) => {
-        if (id === STATIC_ADMIN.id) {
-            return { ...STATIC_ADMIN, password: '' };
+        // Статический администратор
+        if (id === 0) {
+            return {
+                id: 0,
+                email: 'kooooooffe@gmail.com',
+                name: 'Administrator',
+                role: 'admin',
+                car_model: null,
+                car_year: null,
+                license_plate: null,
+                created_at: new Date().toISOString(),
+                password: '' // Добавляем пустой пароль для совместимости
+            };
         }
         return get('SELECT * FROM users WHERE id = ?', [id]);
     },

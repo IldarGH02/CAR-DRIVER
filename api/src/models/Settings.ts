@@ -11,23 +11,21 @@ const DEFAULT_SETTINGS = {
 
 export const SettingsModel = {
     findByUserId: async (userId: number) => {
-        if (userId === 0) {
-            return { user_id: 0, ...DEFAULT_SETTINGS };
-        }
         const row = await get('SELECT * FROM settings WHERE user_id = ?', [userId]);
-        return row || { user_id: userId, ...DEFAULT_SETTINGS };
+        return row || null;
     },
 
     getSettings: async (userId: number) => {
-        return SettingsModel.findByUserId(userId);
+        let settings = await SettingsModel.findByUserId(userId);
+        if (!settings) {
+            return { user_id: userId, ...DEFAULT_SETTINGS };
+        }
+        return settings;
     },
 
     createSettings: async (userId: number, data?: any) => {
-        if (userId === 0) {
-            return { user_id: 0, ...DEFAULT_SETTINGS, ...data };
-        }
         return run(
-            `INSERT INTO settings (user_id, currency, distance_unit, fuel_unit, amortization_rate, notifications, auto_save) 
+            `INSERT INTO settings (user_id, currency, distance_unit, fuel_unit, amortization_rate, notifications, auto_save)
              VALUES (?, ?, ?, ?, ?, ?, ?)`,
             [
                 userId,
@@ -42,13 +40,6 @@ export const SettingsModel = {
     },
 
     updateSettings: async (userId: number, data: any) => {
-        if (userId === 0) {
-            return { user_id: 0, ...DEFAULT_SETTINGS, ...data };
-        }
-        return SettingsModel.update(userId, data);
-    },
-
-    update: async (userId: number, data: any) => {
         const fields: string[] = [];
         const values: any[] = [];
 
@@ -66,7 +57,7 @@ export const SettingsModel = {
         }
         if (data.amortization_rate !== undefined) {
             fields.push('amortization_rate = ?');
-            values.push(data.amortization_rate);
+            values.push(parseFloat(data.amortization_rate));
         }
         if (data.notifications !== undefined) {
             fields.push('notifications = ?');
@@ -80,6 +71,11 @@ export const SettingsModel = {
         if (fields.length === 0) return;
 
         values.push(userId);
-        await run(`UPDATE settings SET ${fields.join(', ')} WHERE user_id = ?`, values);
+        const query = `UPDATE settings SET ${fields.join(', ')} WHERE user_id = ?`;
+        await run(query, values);
+    },
+
+    update: async (userId: number, data: any) => {
+        return SettingsModel.updateSettings(userId, data);
     }
 };

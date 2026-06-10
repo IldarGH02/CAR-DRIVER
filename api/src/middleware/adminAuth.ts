@@ -7,9 +7,12 @@ export const adminAuth = async (request: FastifyRequest, reply: FastifyReply) =>
 
         console.log('=== adminAuth ===');
         console.log('userData:', userData);
+        console.log('userData.id:', userData?.id);
+        console.log('userData.email:', userData?.email);
 
-        if (!userData || !userData.id) {
-            console.log('No user data');
+        // Исправленная проверка
+        if (!userData || userData.id === undefined || userData.id === null) {
+            console.log('No user data - returning 401');
             reply.code(401).send({ success: false, message: 'Unauthorized' });
             return;
         }

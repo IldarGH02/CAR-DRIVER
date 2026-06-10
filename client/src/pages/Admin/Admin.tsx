@@ -67,7 +67,10 @@ export function Admin() {
     const fetchUsers = async () => {
         setIsLoading(true);
         try {
+            console.log('Fetching users...');
             const response = await api.get('/admin/users');
+            console.log('Users response:', response.data);
+
             if (response.data.success) {
                 const filteredUsers = response.data.users.filter((u: User) => u.id !== 0);
                 setUsers(filteredUsers);

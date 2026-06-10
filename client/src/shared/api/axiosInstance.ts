@@ -28,11 +28,27 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
     (response) => response,
     async (error) => {
+        console.error('Axios response error:', {
+            status: error.response?.status,
+            url: error.config?.url,
+            method: error.config?.method,
+            data: error.response?.data
+        });
+
+        // НЕ редиректим на 403 (Forbidden), только на 401
         if (error.response?.status === 401) {
+            console.log('401 Unauthorized - redirecting to login');
             localStorage.removeItem('token');
             localStorage.removeItem('user-storage');
             window.location.href = '/login';
         }
+
+        // Для 403 просто показываем ошибку, но не редиректим
+        if (error.response?.status === 403) {
+            console.log('403 Forbidden - access denied');
+            // Можно показать тост
+        }
+
         return Promise.reject(error);
     }
 );

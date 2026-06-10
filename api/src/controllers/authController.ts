@@ -25,7 +25,7 @@ export const authController = {
         }
 
         try {
-            // Проверяем, не пытается ли кто-то зарегистрировать email админа
+            // Запрещаем регистрацию с email статического админа
             if (email === adminConfig.email) {
                 return reply.code(400).send({
                     success: false,
@@ -75,10 +75,13 @@ export const authController = {
         }
 
         try {
-            // 👇 ПРОВЕРКА СТАТИЧЕСКОГО АДМИНА
             if (isAdminUser(email, password)) {
                 const adminUser = getAdminUser();
-                const token = await reply.jwtSign({ id: adminUser.id, email: adminUser.email });
+                const token = await reply.jwtSign({
+                    id: adminUser.id,
+                    email: adminUser.email,
+                    isStatic: true
+                });
 
                 return reply.send({
                     success: true,
@@ -128,10 +131,9 @@ export const authController = {
 
     getMe: async (request: FastifyRequest, reply: FastifyReply) => {
         try {
-            const userId = (request.user as { id: number; email: string }).id;
-            const userEmail = (request.user as { id: number; email: string }).email;
+            const userData = request.user as { id: number; email: string; isStatic?: boolean };
 
-            if (!userId) {
+            if (!userData || !userData.id) {
                 return reply.code(401).send({
                     success: false,
                     message: 'Unauthorized'
@@ -139,14 +141,14 @@ export const authController = {
             }
 
             // 👇 ПРОВЕРКА СТАТИЧЕСКОГО АДМИНА
-            if (userId === 0 || userEmail === adminConfig.email) {
+            if (userData.isStatic || userData.email === adminConfig.email) {
                 return reply.send({
                     success: true,
                     user: getAdminUser()
                 });
             }
 
-            const user = await UserModel.findById(userId);
+            const user = await UserModel.findById(userData.id);
             if (!user) {
                 return reply.code(404).send({
                     success: false,

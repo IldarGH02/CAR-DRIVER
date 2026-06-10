@@ -12,6 +12,7 @@ declare module '@fastify/jwt' {
         payload: {
             id: number;
             email: string;
+            isStatic?: boolean;
         };
         user: {
             id: number;

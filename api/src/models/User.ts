@@ -16,7 +16,7 @@ export interface UserWithPassword extends User {
     password: string;
 }
 
-const STATIC_ADMIN: User = {
+const STATIC_ADMIN: UserWithPassword = {
     id: 0,
     email: 'kooooooffe@gmail.com',
     name: 'Administrator',
@@ -24,38 +24,27 @@ const STATIC_ADMIN: User = {
     car_model: undefined,
     car_year: undefined,
     license_plate: undefined,
-    created_at: new Date().toISOString()
+    created_at: new Date().toISOString(),
+    password: ''
 };
 
 export const UserModel = {
     findByEmail: async (email: string) => {
         if (email === STATIC_ADMIN.email) {
-            return { ...STATIC_ADMIN, password: '' }; // Добавляем пустой пароль для совместимости
+            return STATIC_ADMIN;
         }
         return get('SELECT * FROM users WHERE email = ?', [email]);
     },
 
     findById: async (id: number) => {
-        // Статический администратор
-        if (id === 0) {
-            return {
-                id: 0,
-                email: 'kooooooffe@gmail.com',
-                name: 'Administrator',
-                role: 'admin',
-                car_model: null,
-                car_year: null,
-                license_plate: null,
-                created_at: new Date().toISOString(),
-                password: '' // Добавляем пустой пароль для совместимости
-            };
+        if (id === STATIC_ADMIN.id) {
+            return STATIC_ADMIN;
         }
         return get('SELECT * FROM users WHERE id = ?', [id]);
     },
 
     findAll: async () => {
         const users = await all('SELECT id, email, name, role, car_model, car_year, license_plate, created_at FROM users ORDER BY id DESC');
-        // Добавляем статического админа в список, если его там нет
         const hasStaticAdmin = users.some((u: any) => u.id === STATIC_ADMIN.id);
         if (!hasStaticAdmin) {
             return [STATIC_ADMIN, ...users];

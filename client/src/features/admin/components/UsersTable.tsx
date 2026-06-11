@@ -37,8 +37,8 @@ export const UsersTable = ({ users, onViewTrips, onEditUser, onDeleteUser, onGen
                                 {user.role === 'admin' ? 'Админ' : 'Пользователь'}
                             </Badge>
                         </TableCell>
-                        <TableCell className="hidden md:table-cell">{user.carModel || '—'}</TableCell>
-                        <TableCell className="hidden lg:table-cell">{user.licensePlate || '—'}</TableCell>
+                        <TableCell className="hidden md:table-cell">{user.carModel ? user.carModel : '—'}</TableCell>
+                        <TableCell className="hidden lg:table-cell">{user.licensePlate ? user.licensePlate : '—'}</TableCell>
                         <TableCell className="text-right whitespace-nowrap">
                             <div className="flex justify-end gap-1 sm:gap-2">
                                 <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-9" onClick={() => onViewTrips(user)} title="Поездки">

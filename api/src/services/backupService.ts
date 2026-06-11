@@ -1,4 +1,4 @@
-import { S3Client, PutObjectCommand, ListObjectsV2Command, GetObjectCommand, HeadBucketCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand, ListObjectsV2Command, GetObjectCommand, HeadBucketCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -19,7 +19,6 @@ const s3Client = new S3Client({
 const BUCKET_NAME = process.env.S3_BUCKET || '';
 const DB_PATH = process.env.DB_PATH || './data/database.sqlite';
 
-// Проверка существования бакета
 const checkBucket = async (): Promise<boolean> => {
     try {
         await s3Client.send(new HeadBucketCommand({ Bucket: BUCKET_NAME }));
@@ -27,6 +26,27 @@ const checkBucket = async (): Promise<boolean> => {
         return true;
     } catch (error: any) {
         console.error(`❌ Bucket ${BUCKET_NAME} not accessible:`, error.message);
+        return false;
+    }
+};
+
+// Проверка, есть ли данные в БД
+const hasDatabaseData = async (): Promise<boolean> => {
+    if (!fs.existsSync(DB_PATH)) return false;
+
+    try {
+        const sqlite3 = await import('sqlite3');
+        const db = new sqlite3.default.Database(DB_PATH);
+        const result = await new Promise((resolve) => {
+            db.get("SELECT COUNT(*) as count FROM users", (err, row) => {
+                db.close();
+                if (err) resolve(0);
+                else resolve((row as any)?.count || 0);
+            });
+        });
+        return (result as number) > 0;
+    } catch (error) {
+        console.error('Error checking database:', error);
         return false;
     }
 };
@@ -62,10 +82,46 @@ export const backupDatabase = async (): Promise<string | null> => {
         }));
 
         console.log(`✅ Database backed up to S3: ${backupKey}`);
+
+        // Очищаем старые бэкапы (оставляем последние 10)
+        await cleanOldBackups();
+
         return backupKey;
     } catch (error) {
         console.error('❌ Failed to backup database:', error);
         return null;
+    }
+};
+
+// Очистка старых бэкапов
+const cleanOldBackups = async (): Promise<void> => {
+    try {
+        const listResponse = await s3Client.send(new ListObjectsV2Command({
+            Bucket: BUCKET_NAME,
+            Prefix: 'backups/',
+        }));
+
+        const backups = listResponse.Contents || [];
+
+        if (backups.length > 10) {
+            const sortedBackups = backups.sort((a, b) =>
+                (a.LastModified?.getTime() || 0) - (b.LastModified?.getTime() || 0)
+            );
+
+            const backupsToDelete = sortedBackups.slice(0, backups.length - 10);
+
+            for (const backup of backupsToDelete) {
+                if (backup.Key) {
+                    await s3Client.send(new DeleteObjectCommand({
+                        Bucket: BUCKET_NAME,
+                        Key: backup.Key,
+                    }));
+                    console.log(`🗑️ Deleted old backup: ${backup.Key}`);
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Failed to clean old backups:', error);
     }
 };
 
@@ -74,6 +130,15 @@ export const restoreDatabase = async (): Promise<boolean> => {
         if (!BUCKET_NAME) {
             console.log('⚠️ No bucket name configured, skipping restore');
             return false;
+        }
+
+        // Если БД уже существует и имеет данные - не восстанавливаем
+        if (fs.existsSync(DB_PATH)) {
+            const hasData = await hasDatabaseData();
+            if (hasData) {
+                console.log('✅ Database already has data, skipping restore');
+                return false;
+            }
         }
 
         const bucketExists = await checkBucket();
@@ -142,9 +207,9 @@ export const setupAutoBackup = () => {
         process.exit(0);
     });
 
-    // Бэкап каждые 24 часа
+    // Бэкап каждые 6 часов (вместо 24)
     setInterval(async () => {
         console.log('⏰ Scheduled backup...');
         await backupDatabase();
-    }, 24 * 60 * 60 * 1000);
+    }, 6 * 60 * 60 * 1000);
 };

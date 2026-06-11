@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useTripsStoreData } from "@features/trips/model/tripsStore";
-import { useSettingsStoreData } from "@features/settings/model/settingsStore";
+import { useSettingsStore } from "@features/settings/model/settingsStore";
 import { useUserStoreData } from "@entities/user/model/userStore";
 import { filterTripsByPeriod, calculateStats } from "../utils/reportHelpers";
 import { toast } from "sonner";
@@ -10,7 +10,7 @@ import { reportTypes, availableColumns } from "../config/reportTypes";
 
 export const useReports = () => {
     const { trips, fetchTrips } = useTripsStoreData();
-    const { settings, fetchSettings } = useSettingsStoreData();
+    const { settings, fetchSettings } = useSettingsStore();
     const { user, fetchUser } = useUserStoreData();
     const [dateFrom, setDateFrom] = useState("");
     const [dateTo, setDateTo] = useState("");
